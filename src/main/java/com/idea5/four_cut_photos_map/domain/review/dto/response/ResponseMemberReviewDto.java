@@ -2,9 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.MemberDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.ReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.ShopDto;
+import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopDto;
 import lombok.*;
 
 @Getter

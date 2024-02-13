@@ -1,4 +1,5 @@
-package com.idea5.four_cut_photos_map.domain.review.dto.entity;
+package com.idea5.four_cut_photos_map.domain.member.dto.response;
+
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -11,8 +12,8 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ShopDto {
-    private Long id;            // 가게 번호
-    private String brand;       // 브랜드 명
-    private String placeName;        // 가게 이름
+public class MemberResp {
+    private Long id;            // 회원 번호
+    private String nickname;    // 닉네임
+    private String mainMemberTitle; // 회원 대표 칭호
 }

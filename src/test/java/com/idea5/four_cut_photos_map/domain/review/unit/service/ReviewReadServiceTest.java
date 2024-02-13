@@ -7,9 +7,9 @@ import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseReviewDt
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseShopReviewDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.ItemScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.PurityScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;

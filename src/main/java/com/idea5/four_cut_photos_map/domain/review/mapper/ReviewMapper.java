@@ -1,19 +1,19 @@
 package com.idea5.four_cut_photos_map.domain.review.mapper;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.MemberDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.MemberResp;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.ReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.entity.ShopDto;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberDto;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResp;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewDto;
+import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.request.RequestReviewDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseMemberReviewDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseReviewDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseShopReviewDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResp;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.ItemScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.PurityScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 
 public class ReviewMapper {

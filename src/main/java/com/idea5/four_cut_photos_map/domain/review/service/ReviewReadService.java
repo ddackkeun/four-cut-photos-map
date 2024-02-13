@@ -2,6 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.service;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
+import com.idea5.four_cut_photos_map.domain.review.entity.response.*;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.*;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
