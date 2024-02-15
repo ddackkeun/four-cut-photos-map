@@ -1,30 +1,25 @@
 package com.idea5.four_cut_photos_map.domain.review.mapper;
 
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberDto;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResp;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewDto;
-import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.request.RequestReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseMemberReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseShopReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResp;
+import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.*;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopResponse;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 
 public class ReviewMapper {
-    private static RequestReviewDto setDefaultScore(RequestReviewDto dto) {
-        if(dto.getPurity() == null) dto.setPurity("UNSELECTED");
-        if(dto.getRetouch() == null) dto.setRetouch("UNSELECTED");
-        if(dto.getItem() == null) dto.setItem("UNSELECTED");
+    private static ReviewRequest setDefaultScore(ReviewRequest request) {
+        if(request.getPurity() == null) request.setPurity("UNSELECTED");
+        if(request.getRetouch() == null) request.setRetouch("UNSELECTED");
+        if(request.getItem() == null) request.setItem("UNSELECTED");
 
-        return dto;
+        return request;
     }
-    public static Review toEntity(Member writer, Shop shop, RequestReviewDto dto) {
+    public static Review toEntity(Member writer, Shop shop, ReviewRequest dto) {
         dto = setDefaultScore(dto);
 
         return Review.builder()
@@ -38,7 +33,7 @@ public class ReviewMapper {
                 .build();
     }
 
-    public static Review update(Review review, RequestReviewDto dto) {
+    public static Review update(Review review, ReviewRequest dto) {
         dto = setDefaultScore(dto);
 
         return review.update(dto);
@@ -47,8 +42,8 @@ public class ReviewMapper {
     /**
      * Review -> ReviewDto
      */
-    private static ReviewDto toReviewDto(Review review) {
-        return ReviewDto.builder()
+    private static ReviewResponse toReviewDto(Review review) {
+        return ReviewResponse.builder()
                 .id(review.getId())
                 .createDate(review.getCreateDate())
                 .modifyDate(review.getModifyDate())
@@ -63,15 +58,15 @@ public class ReviewMapper {
     /**
      * Review.writer -> MemberDto
      */
-    private static MemberDto toMemberDto(Member writer) {
-        return MemberDto.builder()
+    private static MemberResponse toMemberDto(Member writer) {
+        return MemberResponse.builder()
                 .id(writer.getId())
                 .nickname(writer.getNickname())
                 .build();
     }
 
-    private static MemberResp toMemberResp(Member writer, String mainMemberTitle) {
-        return MemberResp.builder()
+    private static MemberResponse toMemberResp(Member writer, String mainMemberTitle) {
+        return MemberResponse.builder()
                 .id(writer.getId())
                 .nickname(writer.getNickname())
                 .mainMemberTitle(mainMemberTitle)
@@ -81,8 +76,8 @@ public class ReviewMapper {
     /**
      * Review.shop -> ShopDto
      */
-    private static ShopDto toShopDto(Shop shop) {
-        return ShopDto.builder()
+    private static ShopResponse toShopDto(Shop shop) {
+        return ShopResponse.builder()
                 .id(shop.getId())
                 .brand(shop.getBrand().getBrandName())
                 .placeName(shop.getPlaceName())
@@ -93,8 +88,8 @@ public class ReviewMapper {
     /**
      * 작성자, 지점 정보가 담긴 리뷰 DTO 반환
      */
-    public static ResponseReviewDto toResponseReviewDto(Review review) {
-        return ResponseReviewDto.builder()
+    public static ReviewResponseDetail toResponseReviewDto(Review review) {
+        return ReviewResponseDetail.builder()
                 .reviewInfo(toReviewDto(review))
                 .memberInfo(toMemberDto(review.getWriter()))
                 .shopInfo(toShopDto(review.getShop()))
@@ -113,8 +108,8 @@ public class ReviewMapper {
     }
 
     // 리뷰, 회원 정보가 담긴 지점 리뷰 정보 반환
-    public static ShopReviewResp toShopReviewResp(Review review, String mainMemberTitle) {
-        return ShopReviewResp.builder()
+    public static ShopReviewResponse toShopReviewResp(Review review, String mainMemberTitle) {
+        return ShopReviewResponse.builder()
                 .reviewInfo(toReviewDto(review))
                 .memberInfo(toMemberResp(review.getWriter(), mainMemberTitle))
                 .build();
@@ -123,8 +118,8 @@ public class ReviewMapper {
     /**
      * 상점 정보가 담긴 리뷰 DTO 반환
      */
-    public static ResponseMemberReviewDto toResponseMemberReviewDto(Review review) {
-        return ResponseMemberReviewDto.builder()
+    public static MemberReviewResponse toResponseMemberReviewDto(Review review) {
+        return MemberReviewResponse.builder()
                 .reviewInfo(toReviewDto(review))
                 .shopInfo(toShopDto(review.getShop()))
                 .build();

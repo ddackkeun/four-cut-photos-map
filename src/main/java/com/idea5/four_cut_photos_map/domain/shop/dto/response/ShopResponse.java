@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ShopDto {
+public class ShopResponse {
     private Long id;            // 가게 번호
     private String brand;       // 브랜드 명
     private String placeName;        // 가게 이름

@@ -2,8 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberDto;
-import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopDto;
+import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopResponse;
 import lombok.*;
 
 @Getter
@@ -12,14 +11,11 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ResponseReviewDto {
+public class MemberReviewResponse {
 
     // Review 관련 정보
-    private ReviewDto reviewInfo;
-
-    // Member 관련 정보
-    private MemberDto memberInfo;
+    private ReviewResponse reviewInfo;
 
     // Shop 관련 정보
-    private ShopDto shopInfo;
+    private ShopResponse shopInfo;
 }

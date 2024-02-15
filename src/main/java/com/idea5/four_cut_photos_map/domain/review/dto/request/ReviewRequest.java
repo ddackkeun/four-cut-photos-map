@@ -13,7 +13,7 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RequestReviewDto {
+public class ReviewRequest {
     @Max(value = 5, message = "별점을 1 ~ 5점으로 선택해주세요.")
     @Min(value = 1, message = "별점을 1 ~ 5점으로 선택해주세요.")
     private int starRating;

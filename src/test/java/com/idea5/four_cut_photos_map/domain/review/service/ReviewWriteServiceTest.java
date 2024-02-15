@@ -1,15 +1,14 @@
-package com.idea5.four_cut_photos_map.domain.review.unit.service;
+package com.idea5.four_cut_photos_map.domain.review.service;
 
 import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.review.dto.request.RequestReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseReviewDto;
+import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
-import com.idea5.four_cut_photos_map.domain.review.service.ReviewWriteService;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.service.ShopService;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
@@ -58,30 +57,30 @@ public class ReviewWriteServiceTest {
             void writeReviewShopSuccess1() {
                 // given
                 Long shopId = 1L;
-                RequestReviewDto requestReviewDto = RequestReviewDto.builder().starRating(3).content("새로 지점에 추가하는 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
+                ReviewRequest reviewRequest = ReviewRequest.builder().starRating(3).content("새로 지점에 추가하는 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
                 Review review = Review.builder()
                         .id(1L)
                         .createDate(LocalDateTime.now())
                         .modifyDate(LocalDateTime.now())
                         .writer(writer)
                         .shop(shop)
-                        .starRating(requestReviewDto.getStarRating())
-                        .content(requestReviewDto.getContent())
-                        .purity(PurityScore.valueOf(requestReviewDto.getPurity()))
-                        .retouch(RetouchScore.valueOf(requestReviewDto.getRetouch()))
-                        .item(ItemScore.valueOf(requestReviewDto.getItem()))
+                        .starRating(reviewRequest.getStarRating())
+                        .content(reviewRequest.getContent())
+                        .purity(PurityScore.valueOf(reviewRequest.getPurity()))
+                        .retouch(RetouchScore.valueOf(reviewRequest.getRetouch()))
+                        .item(ItemScore.valueOf(reviewRequest.getItem()))
                         .build();
 
                 // when
                 when(shopService.findById(shopId)).thenReturn(shop);
                 when(reviewRepository.save(any(Review.class))).thenReturn(review);
 
-                ResponseReviewDto responseReviewDto = reviewWriteService.write(writer, shopId, requestReviewDto);
+                ReviewResponseDetail reviewResponseDetail = reviewWriteService.write(writer, shopId, reviewRequest);
 
                 // then
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getId(), review.getId());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getStarRating(), review.getStarRating());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getContent(), review.getContent());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getId(), review.getId());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), review.getStarRating());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), review.getContent());
 
             }
 
@@ -90,15 +89,15 @@ public class ReviewWriteServiceTest {
             void retrieveShopReviewsSuccess2() {
                 // given
                 Long shopId = 1L;
-                RequestReviewDto requestReviewDto = RequestReviewDto.builder().starRating(3).content("새로 지점에 추가하는 리뷰 내용").build();
+                ReviewRequest reviewRequest = ReviewRequest.builder().starRating(3).content("새로 지점에 추가하는 리뷰 내용").build();
                 Review review = Review.builder()
                         .id(1L)
                         .createDate(LocalDateTime.now())
                         .modifyDate(LocalDateTime.now())
                         .writer(writer)
                         .shop(shop)
-                        .starRating(requestReviewDto.getStarRating())
-                        .content(requestReviewDto.getContent())
+                        .starRating(reviewRequest.getStarRating())
+                        .content(reviewRequest.getContent())
                         .purity(PurityScore.UNSELECTED)
                         .retouch(RetouchScore.UNSELECTED)
                         .item(ItemScore.UNSELECTED)
@@ -108,18 +107,18 @@ public class ReviewWriteServiceTest {
                 when(shopService.findById(shopId)).thenReturn(shop);
                 when(reviewRepository.save(any(Review.class))).thenReturn(review);
 
-                ResponseReviewDto responseReviewDto = reviewWriteService.write(writer, shopId, requestReviewDto);
+                ReviewResponseDetail reviewResponseDetail = reviewWriteService.write(writer, shopId, reviewRequest);
 
                 // then
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getId(), review.getId());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getStarRating(), review.getStarRating());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getContent(), review.getContent());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getPurity(), review.getPurity());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getRetouch(), review.getRetouch());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getItem(), review.getItem());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getId(), review.getId());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), review.getStarRating());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), review.getContent());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getPurity(), review.getPurity());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getRetouch(), review.getRetouch());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getItem(), review.getItem());
 
-                Assertions.assertEquals(responseReviewDto.getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(responseReviewDto.getShopInfo().getPlaceName(), shop.getPlaceName());
+                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getId(), shop.getId());
+                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getPlaceName(), shop.getPlaceName());
             }
         }
 
@@ -131,14 +130,14 @@ public class ReviewWriteServiceTest {
             void retrieveShopReviewsFail1() {
                 // given
                 Long shopId = 2L;
-                RequestReviewDto requestReviewDto = RequestReviewDto.builder().starRating(3).content("새로 지점에 추가하는 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
+                ReviewRequest reviewRequest = ReviewRequest.builder().starRating(3).content("새로 지점에 추가하는 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
                 BusinessException exception = new BusinessException(ErrorCode.SHOP_NOT_FOUND);
 
                 // when
                 when(shopService.findById(shopId)).thenThrow(exception);
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> reviewWriteService.write(writer, shopId, requestReviewDto));
+                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> reviewWriteService.write(writer, shopId, reviewRequest));
                 Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
                 Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
             }
@@ -170,19 +169,19 @@ public class ReviewWriteServiceTest {
                 // given
                 Long modifyReviewId = 1L;
                 Member user = Member.builder().id(1L).build();
-                RequestReviewDto modifyReviewDto = RequestReviewDto.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
+                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
 
                 // when
                 when(reviewRepository.findById(modifyReviewId)).thenReturn(Optional.of(review));
 
-                ResponseReviewDto responseReviewDto = reviewWriteService.modify(user, modifyReviewId, modifyReviewDto);
+                ReviewResponseDetail reviewResponseDetail = reviewWriteService.modify(user, modifyReviewId, modifyReviewDto);
 
                 // then
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getStarRating(), modifyReviewDto.getStarRating());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getContent(), modifyReviewDto.getContent());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getPurity(), PurityScore.valueOf(modifyReviewDto.getPurity()));
-                Assertions.assertEquals(String.valueOf(responseReviewDto.getReviewInfo().getRetouch()), modifyReviewDto.getRetouch());
-                Assertions.assertEquals(String.valueOf(responseReviewDto.getReviewInfo().getItem()), modifyReviewDto.getItem());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), modifyReviewDto.getStarRating());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), modifyReviewDto.getContent());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getPurity(), PurityScore.valueOf(modifyReviewDto.getPurity()));
+                Assertions.assertEquals(String.valueOf(reviewResponseDetail.getReviewInfo().getRetouch()), modifyReviewDto.getRetouch());
+                Assertions.assertEquals(String.valueOf(reviewResponseDetail.getReviewInfo().getItem()), modifyReviewDto.getItem());
             }
 
             @Test
@@ -191,26 +190,26 @@ public class ReviewWriteServiceTest {
                 // given
                 Long modifyReviewId = 1L;
                 Member user = Member.builder().id(1L).build();
-                RequestReviewDto modifyReviewDto = RequestReviewDto.builder().starRating(3).content("수정 후 리뷰 내용").build();
+                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").build();
 
                 // when
                 when(reviewRepository.findById(modifyReviewId)).thenReturn(Optional.of(review));
 
-                ResponseReviewDto responseReviewDto = reviewWriteService.modify(user, modifyReviewId, modifyReviewDto);
+                ReviewResponseDetail reviewResponseDetail = reviewWriteService.modify(user, modifyReviewId, modifyReviewDto);
 
                 // then
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getId(), modifyReviewId);
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getStarRating(), modifyReviewDto.getStarRating());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getContent(), modifyReviewDto.getContent());
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getPurity(), PurityScore.UNSELECTED);
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getRetouch(), RetouchScore.UNSELECTED);
-                Assertions.assertEquals(responseReviewDto.getReviewInfo().getItem(), ItemScore.UNSELECTED);
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getId(), modifyReviewId);
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), modifyReviewDto.getStarRating());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), modifyReviewDto.getContent());
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getPurity(), PurityScore.UNSELECTED);
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getRetouch(), RetouchScore.UNSELECTED);
+                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getItem(), ItemScore.UNSELECTED);
 
-                Assertions.assertEquals(responseReviewDto.getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(responseReviewDto.getMemberInfo().getNickname(), writer.getNickname());
+                Assertions.assertEquals(reviewResponseDetail.getMemberInfo().getId(), writer.getId());
+                Assertions.assertEquals(reviewResponseDetail.getMemberInfo().getNickname(), writer.getNickname());
 
-                Assertions.assertEquals(responseReviewDto.getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(responseReviewDto.getShopInfo().getPlaceName(), shop.getPlaceName());
+                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getId(), shop.getId());
+                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getPlaceName(), shop.getPlaceName());
             }
         }
 
@@ -223,7 +222,7 @@ public class ReviewWriteServiceTest {
                 // given
                 Long modifyReviewId = 2L;
                 Member user = Member.builder().id(1L).build();
-                RequestReviewDto modifyReviewDto = RequestReviewDto.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
+                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
                 BusinessException exception = new BusinessException(ErrorCode.REVIEW_NOT_FOUND);
 
                 // when
@@ -241,7 +240,7 @@ public class ReviewWriteServiceTest {
                 // given
                 Long modifyReviewId = 1L;
                 Member user = Member.builder().id(2L).build();
-                RequestReviewDto modifyReviewDto = RequestReviewDto.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
+                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
                 BusinessException exception = new BusinessException(ErrorCode.WRITER_DOES_NOT_MATCH);
 
                 // when

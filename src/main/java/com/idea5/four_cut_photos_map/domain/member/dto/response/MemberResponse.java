@@ -12,7 +12,8 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class MemberDto {
+public class MemberResponse {
     private Long id;            // 회원 번호
-    private String nickname;    // 카카오 닉네임
+    private String nickname;    // 닉네임
+    private String mainMemberTitle; // 회원 대표 칭호
 }

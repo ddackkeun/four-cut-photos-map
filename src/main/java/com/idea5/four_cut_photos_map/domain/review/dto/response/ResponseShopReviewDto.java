@@ -2,7 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberDto;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import lombok.*;
 
 @Getter
@@ -14,9 +14,9 @@ import lombok.*;
 public class ResponseShopReviewDto {
 
     // Review 관련 정보
-    private ReviewDto reviewInfo;
+    private ReviewResponse reviewInfo;
 
     // Member 관련 정보
-    private MemberDto memberInfo;
+    private MemberResponse memberInfo;
 
 }

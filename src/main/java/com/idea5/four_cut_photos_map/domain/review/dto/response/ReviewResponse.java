@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ReviewDto {
+public class ReviewResponse {
     // Review 관련 정보
     private Long id;                    // 리뷰 번호
     private LocalDateTime createDate;   // 리뷰 생성 일자

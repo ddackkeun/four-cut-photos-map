@@ -1,8 +1,8 @@
 package com.idea5.four_cut_photos_map.domain.review.service;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.review.dto.request.RequestReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ResponseReviewDto;
+import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
@@ -26,7 +26,7 @@ public class ReviewWriteService {
             throw new BusinessException(ErrorCode.WRITER_DOES_NOT_MATCH);
     }
 
-    public ResponseReviewDto write(Member member, Long shopId, RequestReviewDto reviewDto) {
+    public ReviewResponseDetail write(Member member, Long shopId, ReviewRequest reviewDto) {
         Shop shop = shopService.findById(shopId);
 
         Review savedReview = reviewRepository.save(ReviewMapper.toEntity(member, shop, reviewDto));
@@ -34,7 +34,7 @@ public class ReviewWriteService {
         return ReviewMapper.toResponseReviewDto(savedReview);
     }
 
-    public ResponseReviewDto modify(Member member, Long reviewId, RequestReviewDto reviewDto) {
+    public ReviewResponseDetail modify(Member member, Long reviewId, ReviewRequest reviewDto) {
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
         authorizeReviewWriter(member, review);

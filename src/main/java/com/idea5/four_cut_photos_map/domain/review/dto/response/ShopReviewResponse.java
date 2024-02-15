@@ -2,7 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResp;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import lombok.*;
 
 /**
@@ -14,7 +14,7 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ShopReviewResp {
-    private ReviewDto reviewInfo;   // 리뷰 정보
-    private MemberResp memberInfo;  // 회원 정보
+public class ShopReviewResponse {
+    private ReviewResponse reviewInfo;   // 리뷰 정보
+    private MemberResponse memberInfo;  // 회원 정보
 }
