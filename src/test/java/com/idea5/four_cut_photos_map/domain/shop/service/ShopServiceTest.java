@@ -179,4 +179,5 @@ class ShopServiceTest {
                 () -> assertThat(response.get(0).getPlaceName()).isEqualTo(shop.getPlaceName())
         );
     }
+
 }
