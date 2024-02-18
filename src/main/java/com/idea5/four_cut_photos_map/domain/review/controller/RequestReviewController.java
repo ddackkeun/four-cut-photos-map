@@ -2,11 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.controller;
 
 import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
-import com.idea5.four_cut_photos_map.domain.review.service.GetReviewService;
 import com.idea5.four_cut_photos_map.domain.review.service.RequestReviewService;
-import com.idea5.four_cut_photos_map.domain.review.service.RequestReviewServiceImpl;
 import com.idea5.four_cut_photos_map.domain.shop.service.ShopService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +20,6 @@ import javax.validation.Valid;
 @RequestMapping("/reviews")
 public class RequestReviewController {
     private final RequestReviewService requestReviewService;
-
     private final ShopService shopService;
 
     /**

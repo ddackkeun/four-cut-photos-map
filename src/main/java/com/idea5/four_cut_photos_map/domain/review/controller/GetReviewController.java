@@ -4,7 +4,6 @@ import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResp
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.service.GetReviewService;
-import com.idea5.four_cut_photos_map.domain.review.service.GetReviewServiceImpl;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

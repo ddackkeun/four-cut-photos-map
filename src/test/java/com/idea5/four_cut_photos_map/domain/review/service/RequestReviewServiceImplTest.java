@@ -8,7 +8,7 @@ import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
-import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper2;
+import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
@@ -43,7 +43,7 @@ public class RequestReviewServiceImplTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private ReviewMapper2 reviewMapper;
+    private ReviewMapper reviewMapper;
 
     @Nested
     @DisplayName("상점 리뷰 작성")

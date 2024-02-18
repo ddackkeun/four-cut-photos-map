@@ -8,7 +8,7 @@ import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDe
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
-import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper2;
+import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.mapper.ShopMapper;
@@ -32,7 +32,7 @@ public class GetReviewServiceImpl implements GetReviewService {
     private final ShopRepository shopRepository;
     private final MemberTitleLogRepository memberTitleLogRepository;
 
-    private final ReviewMapper2 reviewMapper;
+    private final ReviewMapper reviewMapper;
     private final MemberMapper memberMapper;
     private final ShopMapper shopMapper;
 
