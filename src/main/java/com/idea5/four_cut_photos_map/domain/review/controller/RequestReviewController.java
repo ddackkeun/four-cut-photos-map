@@ -23,8 +23,6 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RequestMapping("/reviews")
 public class RequestReviewController {
-    private final GetReviewService getReviewService;
-    private final RequestReviewServiceImpl requestReviewServiceImpl;
     private final RequestReviewService requestReviewService;
 
     private final ShopService shopService;
@@ -70,11 +68,10 @@ public class RequestReviewController {
     @DeleteMapping("/{review-id}")
     public ResponseEntity<String> deleteReview(@PathVariable("review-id") Long reviewId,
                                                @AuthenticationPrincipal MemberContext memberContext) {
-        Long shopId = requestReviewServiceImpl.delete(memberContext.getMember(), reviewId);
+        Long shopId = requestReviewService.deleteReview(memberContext.getId(), reviewId);
 
-        // 추후 배치 등 이용해서 상점 정보 갱신
-        ShopReviewInfoDto shopReviewInfo = getReviewService.getShopReviewInfo(shopId);
-        shopService.updateReviewInfo(shopReviewInfo);
+        // TODO 추후 배치 등 이용해서 상점 정보 갱신
+        shopService.updateReviewInfo(shopId);
 
         return ResponseEntity.ok("리뷰 삭제 완료");
     }

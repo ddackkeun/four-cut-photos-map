@@ -1,6 +1,5 @@
 package com.idea5.four_cut_photos_map.domain.review.service;
 
-import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
@@ -15,7 +14,10 @@ import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -307,26 +309,33 @@ public class RequestReviewServiceImplTest {
         }
     }
 
-    /*@Nested
+    @Nested
     @DisplayName("특정 리뷰 삭제")
     class DeleteReview {
-        private Member writer;
-        private Brand brand;
-        private Shop shop;
-        private Review review;
-
-        @BeforeEach
-        void setUp() {
-            writer = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
-            shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop).starRating(5).content("리뷰 내용").purity(PurityScore.UNSELECTED).retouch(RetouchScore.UNSELECTED).item(ItemScore.UNSELECTED).build();
-        }
-
         @Nested
         @DisplayName("성공")
         class SuccessCase {
+            @Test
+            @DisplayName("특정 id의 리뷰 존재")
+            void deleteReviewSuccessCase1() {
+                // given
+                Long memberId = 1L;
+                Long reviewId = 2L;
+                Long shopId = 1L;
+                Member writer = Member.builder().id(memberId).build(); // 현재 사용자
+                Shop shop = Shop.builder().id(shopId).build();
+                Review review = Review.builder().id(reviewId).writer(writer).shop(shop).build();
 
+                // when
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+
+                Long result = requestReviewServiceImpl.deleteReview(memberId, reviewId);
+
+                // then
+                Assertions.assertEquals(shopId, result);
+
+                verify(reviewRepository, times(1)).delete(review);
+            }
         }
 
         @Nested
@@ -336,36 +345,45 @@ public class RequestReviewServiceImplTest {
             @DisplayName("해당 id 가진 리뷰 존재하지 않음")
             void modifyReviewFail1() {
                 // given
-                Long deleteReviewId = 2L;
-                Member user = Member.builder().id(1L).build();
-                BusinessException exception = new BusinessException(ErrorCode.REVIEW_NOT_FOUND);
+                Long memberId = 1L;
+                Long reviewId = 2L;
+                Member user = Member.builder().id(memberId).build();
 
                 // when
-                when(reviewRepository.findById(deleteReviewId)).thenThrow(exception);
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.delete(user, deleteReviewId));
-                Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
+                BusinessException resultException = Assertions.assertThrows(BusinessException.class,
+                        () -> requestReviewServiceImpl.deleteReview(memberId, reviewId));
+
+                Assertions.assertEquals(ErrorCode.REVIEW_NOT_FOUND, resultException.getErrorCode());
+                Assertions.assertEquals(ErrorCode.REVIEW_NOT_FOUND.getMessage(), resultException.getMessage());
+
+                verify(reviewRepository, never()).delete(any());
             }
 
             @Test
-            @DisplayName("사용자와 리뷰 작성자 불일치")
+            @DisplayName("리뷰 작성자와 사용자 불일치")
             void modifyReviewFail2() {
                 // given
-                Long modifyReviewId = 1L;
-                Member user = Member.builder().id(2L).build();
-                BusinessException exception = new BusinessException(ErrorCode.WRITER_DOES_NOT_MATCH);
+                Long memberId = 1L;
+                Long reviewId = 2L;
+
+                Member writer = Member.builder().id(100L).build();
+                Review review = Review.builder().id(reviewId).writer(writer).build();
 
                 // when
-                when(reviewRepository.findById(modifyReviewId)).thenReturn(Optional.of(review));
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.delete(user, modifyReviewId));
-                Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
+                BusinessException resultException = Assertions.assertThrows(BusinessException.class,
+                        () -> requestReviewServiceImpl.deleteReview(memberId, reviewId));
+
+                Assertions.assertEquals(ErrorCode.WRITER_DOES_NOT_MATCH, resultException.getErrorCode());
+                Assertions.assertEquals(ErrorCode.WRITER_DOES_NOT_MATCH.getMessage(), resultException.getMessage());
+
+                verify(reviewRepository, never()).delete(any());
             }
         }
     }
-*/
 }

@@ -104,6 +104,18 @@ public class RequestReviewServiceImpl implements RequestReviewService {
         return shopId;
     }
 
+    @Override
+    public Long deleteReview(Long memberId, Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
+
+        matchMemberIdAndWriterId(memberId, review.getWriter().getId());
+        Long shopId = review.getShop().getId();
+
+        reviewRepository.delete(review);
+        return shopId;
+    }
+
     public void deleteByWriterId(Long memberId) {
         reviewRepository.deleteByWriterId(memberId);
     }
