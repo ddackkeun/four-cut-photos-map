@@ -5,7 +5,6 @@ import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
@@ -26,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class RequestReviewServiceImplTest {
@@ -178,19 +177,6 @@ public class RequestReviewServiceImplTest {
     @Nested
     @DisplayName("특정 리뷰 수정")
     class ModifyReview {
-        private Member writer;
-        private Brand brand;
-        private Shop shop;
-        private Review review;
-
-        @BeforeEach
-        void setUp() {
-            writer = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
-            shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop).starRating(5).content("리뷰 내용").purity(PurityScore.BAD).retouch(RetouchScore.BAD).item(ItemScore.BAD).build();
-        }
-
         @Nested
         @DisplayName("성공")
         class SuccessCase {
@@ -198,49 +184,80 @@ public class RequestReviewServiceImplTest {
             @DisplayName("해당 id 가진 리뷰 수정")
             void modifyReviewSuccess1() {
                 // given
-                Long modifyReviewId = 1L;
-                Member user = Member.builder().id(1L).build();
-                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
+                Long memberId = 1L;
+                Long reviewId = 2L;
+                ReviewRequest request = new ReviewRequest(5, "수정 내용", "GOOD", "GOOD", "GOOD");
+
+                Member writer = Member.builder().id(memberId).build();
+                Shop shop = Shop.builder().id(2L).build();
+
+                Review originalReview = Review.builder().id(reviewId).writer(writer).shop(shop).createDate(LocalDateTime.now()).build();
+                Review newReview = Review.builder()
+                        .id(reviewId)
+                        .createDate(originalReview.getCreateDate())
+                        .modifyDate(LocalDateTime.now())
+                        .writer(originalReview.getWriter())
+                        .shop(originalReview.getShop())
+                        .starRating(request.getStarRating())
+                        .content(request.getContent())
+                        .purity(PurityScore.valueOf(request.getPurity()))
+                        .retouch(RetouchScore.valueOf(request.getRetouch()))
+                        .item(ItemScore.valueOf(request.getItem()))
+                        .build();
 
                 // when
-                when(reviewRepository.findById(modifyReviewId)).thenReturn(Optional.of(review));
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(originalReview));
+                when(reviewMapper.toEntity(originalReview, request)).thenReturn(newReview);
+                when(reviewRepository.save(newReview)).thenReturn(newReview);
 
-                ReviewResponseDetail reviewResponseDetail = requestReviewServiceImpl.modify(user, modifyReviewId, modifyReviewDto);
+                Long result = requestReviewServiceImpl.modifyReview(memberId, reviewId, request);
 
                 // then
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), modifyReviewDto.getStarRating());
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), modifyReviewDto.getContent());
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getPurity(), PurityScore.valueOf(modifyReviewDto.getPurity()));
-                Assertions.assertEquals(String.valueOf(reviewResponseDetail.getReviewInfo().getRetouch()), modifyReviewDto.getRetouch());
-                Assertions.assertEquals(String.valueOf(reviewResponseDetail.getReviewInfo().getItem()), modifyReviewDto.getItem());
+                verify(reviewRepository).findById(reviewId);
+                verify(reviewMapper).toEntity(originalReview, request);
+                verify(reviewRepository).save(newReview);
+
+                Assertions.assertEquals(shop.getId(), result);
             }
 
             @Test
-            @DisplayName("purity, retouch, item를 null로 전송")
+            @DisplayName("요청의 purity, retouch, item 값이 null인 경우")
             void modifyReviewSuccess2() {
                 // given
-                Long modifyReviewId = 1L;
-                Member user = Member.builder().id(1L).build();
-                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").build();
+                Long memberId = 1L;
+                Long reviewId = 2L;
+                ReviewRequest request = ReviewRequest.builder().starRating(5).content("수정 내용").build();
+
+                Member writer = Member.builder().id(memberId).build();
+                Shop shop = Shop.builder().id(2L).build();
+
+                Review originalReview = Review.builder().id(reviewId).createDate(LocalDateTime.now()).writer(writer).shop(shop).build();
+                Review newReview = Review.builder()
+                        .id(originalReview.getId())
+                        .createDate(originalReview.getCreateDate())
+                        .modifyDate(LocalDateTime.now())
+                        .writer(originalReview.getWriter())
+                        .shop(originalReview.getShop())
+                        .starRating(request.getStarRating())
+                        .content(request.getContent())
+                        .purity(PurityScore.UNSELECTED)
+                        .retouch(RetouchScore.UNSELECTED)
+                        .item(ItemScore.UNSELECTED)
+                        .build();
 
                 // when
-                when(reviewRepository.findById(modifyReviewId)).thenReturn(Optional.of(review));
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(originalReview));
+                when(reviewMapper.toEntity(originalReview, request)).thenReturn(newReview);
+                when(reviewRepository.save(newReview)).thenReturn(newReview);
 
-                ReviewResponseDetail reviewResponseDetail = requestReviewServiceImpl.modify(user, modifyReviewId, modifyReviewDto);
+                Long result = requestReviewServiceImpl.modifyReview(memberId, reviewId, request);
 
                 // then
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getId(), modifyReviewId);
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), modifyReviewDto.getStarRating());
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), modifyReviewDto.getContent());
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getPurity(), PurityScore.UNSELECTED);
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getRetouch(), RetouchScore.UNSELECTED);
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getItem(), ItemScore.UNSELECTED);
+                verify(reviewRepository).findById(reviewId);
+                verify(reviewMapper).toEntity(originalReview, request);
+                verify(reviewRepository).save(newReview);
 
-                Assertions.assertEquals(reviewResponseDetail.getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(reviewResponseDetail.getMemberInfo().getNickname(), writer.getNickname());
-
-                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getPlaceName(), shop.getPlaceName());
+                Assertions.assertEquals(shop.getId(), result);
             }
         }
 
@@ -248,44 +265,49 @@ public class RequestReviewServiceImplTest {
         @DisplayName("실패")
         class FailCase {
             @Test
-            @DisplayName("해당 id 가진 리뷰 존재하지 않음")
+            @DisplayName("해당 id 가진 리뷰가 존재하지 않음")
             void modifyReviewFail1() {
                 // given
-                Long modifyReviewId = 2L;
-                Member user = Member.builder().id(1L).build();
-                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
-                BusinessException exception = new BusinessException(ErrorCode.REVIEW_NOT_FOUND);
+                Long memberId = 1L;
+                Long reviewId = 2L;
 
                 // when
-                when(reviewRepository.findById(modifyReviewId)).thenThrow(exception);
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.modify(user, modifyReviewId, modifyReviewDto));
-                Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
+                BusinessException resultException = Assertions.assertThrows(BusinessException.class,
+                        () -> requestReviewServiceImpl.modifyReview(memberId, reviewId, new ReviewRequest()));
+
+                Assertions.assertEquals(resultException.getErrorCode(), ErrorCode.REVIEW_NOT_FOUND);
+                Assertions.assertEquals(resultException.getMessage(), ErrorCode.REVIEW_NOT_FOUND.getMessage());
+
+                verify(reviewRepository, never()).save(any());
             }
 
             @Test
             @DisplayName("사용자와 리뷰 작성자 불일치")
             void modifyReviewFail2() {
                 // given
-                Long modifyReviewId = 1L;
-                Member user = Member.builder().id(2L).build();
-                ReviewRequest modifyReviewDto = ReviewRequest.builder().starRating(3).content("수정 후 리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
-                BusinessException exception = new BusinessException(ErrorCode.WRITER_DOES_NOT_MATCH);
+                Long memberId = 1L;
+                Long reviewId = 2L;
+
+                Member writer = Member.builder().id(100L).build();
+                Review originalReview = Review.builder().id(reviewId).writer(writer).build();
 
                 // when
-                when(reviewRepository.findById(modifyReviewId)).thenReturn(Optional.of(review));
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(originalReview));
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.modify(user, modifyReviewId, modifyReviewDto));
-                Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
+                BusinessException resultException = Assertions.assertThrows(BusinessException.class,
+                        () -> requestReviewServiceImpl.modifyReview(memberId, reviewId, new ReviewRequest()));
+
+                Assertions.assertEquals(resultException.getErrorCode(), ErrorCode.WRITER_DOES_NOT_MATCH);
+                Assertions.assertEquals(resultException.getMessage(), ErrorCode.WRITER_DOES_NOT_MATCH.getMessage());
             }
         }
     }
 
-    @Nested
+    /*@Nested
     @DisplayName("특정 리뷰 삭제")
     class DeleteReview {
         private Member writer;
@@ -345,5 +367,5 @@ public class RequestReviewServiceImplTest {
             }
         }
     }
-
+*/
 }

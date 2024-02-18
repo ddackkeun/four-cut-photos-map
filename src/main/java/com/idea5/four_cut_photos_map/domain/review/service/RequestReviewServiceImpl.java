@@ -40,6 +40,12 @@ public class RequestReviewServiceImpl implements RequestReviewService {
             throw new BusinessException(ErrorCode.WRITER_DOES_NOT_MATCH);
     }
 
+    public void matchMemberIdAndWriterId(long memberId, long writerId) {
+        if(memberId != writerId) {
+            throw new BusinessException(ErrorCode.WRITER_DOES_NOT_MATCH);
+        }
+    }
+
     public ReviewResponseDetail write(Member member, Long shopId, ReviewRequest reviewDto) {
         Shop shop = shopService.findById(shopId);
 
@@ -63,6 +69,7 @@ public class RequestReviewServiceImpl implements RequestReviewService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_PARAMETER));
     }
 
+
     public ReviewResponseDetail modify(Member member, Long reviewId, ReviewRequest reviewDto) {
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
@@ -71,6 +78,19 @@ public class RequestReviewServiceImpl implements RequestReviewService {
         ReviewMapper.update(review, reviewDto);
 
         return ReviewMapper.toResponseReviewDto(review);
+    }
+
+    @Override
+    public Long modifyReview(Long memberId, Long reviewId, ReviewRequest request) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
+
+        matchMemberIdAndWriterId(memberId, review.getWriter().getId());
+
+        Review newReview = reviewMapper.toEntity(review, request);
+        reviewRepository.save(newReview);
+
+        return newReview.getShop().getId();
     }
 
     public Long delete(Member member, Long reviewId) {

@@ -53,12 +53,12 @@ public class RequestReviewController {
     @PatchMapping("/{review-id}")
     public ResponseEntity<String> modifyReview(@PathVariable("review-id") Long reviewId,
                                                @AuthenticationPrincipal MemberContext memberContext,
-                                               @Valid @RequestBody ReviewRequest reviewDto) {
-        ReviewResponseDetail reviewResponseDetail = requestReviewServiceImpl.modify(memberContext.getMember(), reviewId, reviewDto);
+                                               @Valid @RequestBody ReviewRequest request) {
+        Long shopId = requestReviewService.modifyReview(memberContext.getId(), reviewId, request);
+        log.info("shopId of modified reviews: {}", shopId);
 
-        // 추후 배치 등 이용해서 상점 정보 갱신
-        ShopReviewInfoDto shopReviewInfo = getReviewService.getShopReviewInfo(reviewResponseDetail.getShopInfo().getId());
-        shopService.updateReviewInfo(shopReviewInfo);
+        // TODO 추후 배치 등 이용해서 상점 정보 갱신
+        shopService.updateReviewInfo(shopId);
 
         return ResponseEntity.ok("리뷰 수정 완료");
     }

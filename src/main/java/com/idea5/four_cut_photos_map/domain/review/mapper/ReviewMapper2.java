@@ -12,7 +12,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewMapper2 {
+    public Review toEntity(Review review, ReviewRequest request) {
+        Review newReview = toEntity(review.getWriter(), review.getShop(), request);
+        newReview.setId(review.getId());
+        newReview.setCreateDate(review.getCreateDate());
 
+        return newReview;
+    }
     public Review toEntity(Member writer, Shop shop, ReviewRequest request) {
         PurityScore purity = request.getPurity() == null ? PurityScore.UNSELECTED : PurityScore.valueOf(request.getPurity());
         RetouchScore retouch = request.getRetouch() == null ? RetouchScore.UNSELECTED : RetouchScore.valueOf(request.getRetouch());

@@ -5,4 +5,5 @@ import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
 
 public interface RequestReviewService {
     ReviewResponse writeReviewForShop(Long shopId, Long writerId, ReviewRequest request);
+    Long modifyReview(Long memberId, Long reviewId, ReviewRequest request);
 }
