@@ -3,6 +3,8 @@ package com.idea5.four_cut_photos_map.domain.shop.service;
 import com.idea5.four_cut_photos_map.domain.favorite.dto.response.FavoriteResponse;
 import com.idea5.four_cut_photos_map.domain.favorite.entity.Favorite;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
+import com.idea5.four_cut_photos_map.domain.review.entity.Review;
+import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.*;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
@@ -18,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.idea5.four_cut_photos_map.global.error.ErrorCode.INVALID_SHOP_ID;
 import static com.idea5.four_cut_photos_map.global.error.ErrorCode.SHOP_NOT_FOUND;
@@ -30,6 +30,7 @@ import static com.idea5.four_cut_photos_map.global.error.ErrorCode.SHOP_NOT_FOUN
 
 public class ShopService {
     private final ShopRepository shopRepository;
+    private final ReviewRepository reviewRepository;
     private final KakaoMapSearchApi kakaoMapSearchApi;
     private final RedisDao redisDao;
 
@@ -150,7 +151,29 @@ public class ShopService {
     @Transactional
     public void updateReviewInfo(ShopReviewInfoDto shopReviewInfo) {
         Shop shop = findById(shopReviewInfo.getShopId());
+
         shop.setReviewCnt(shopReviewInfo.getReviewCnt());
         shop.setStarRatingAvg(shopReviewInfo.getStarRatingAvg());
+    }
+
+    @Transactional
+    public void updateReviewInfo(Long shopId) {
+        Shop shop = findById(shopId);
+
+        List<Review> reviews = reviewRepository.findAllByShopId(shopId);
+        int reviewCount = reviews.size();
+        double starRatingAvg = calculateStarRatingAverage(reviews);
+
+        shop.setReviewCnt(reviewCount);
+        shop.setStarRatingAvg(starRatingAvg);
+        shopRepository.save(shop);
+    }
+
+    private double calculateStarRatingAverage(List<Review> reviews) {
+        double starRatingAvg = reviews.stream()
+                .mapToDouble(Review::getStarRating)
+                .average()
+                .orElse(0.0);
+        return Math.round(starRatingAvg * 10) / 10.0;
     }
 }

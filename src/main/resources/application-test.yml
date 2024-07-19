@@ -1,13 +1,9 @@
 spring:
   datasource:
-    url: jdbc:mysql://${testDbIp:localhost}:3306/four_cut_photos_map_test?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${testDbIp:localhost}:3306/photos_map_test?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul
     username: ${testDbId:user1}
-    password: ${testDbPw:Ttest12341234@}
-
+    password: ${testDbPw:1234}
   jpa:
     hibernate:
       ddl-auto: create
-
-  sql:
-    init:
-      mode: never # 테스트 코드에서는 data.sql 적용막기 (팀원들이랑 의논해야할듯)

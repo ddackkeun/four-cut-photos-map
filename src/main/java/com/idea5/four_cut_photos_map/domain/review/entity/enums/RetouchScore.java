@@ -1,4 +1,4 @@
-package com.idea5.four_cut_photos_map.domain.review.entity.score;
+package com.idea5.four_cut_photos_map.domain.review.entity.enums;
 
 import lombok.Getter;
 

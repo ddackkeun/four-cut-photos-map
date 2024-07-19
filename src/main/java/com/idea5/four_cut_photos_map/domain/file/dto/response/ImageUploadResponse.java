@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.net.URL;
+
 /**
  * 이미지 업로드 응답
  */
 @Getter
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class UploadImageResp {
+public class ImageUploadResponse {
+    private String fileName;
     private String url;
 }

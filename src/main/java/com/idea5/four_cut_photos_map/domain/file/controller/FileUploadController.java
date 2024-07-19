@@ -1,6 +1,7 @@
 package com.idea5.four_cut_photos_map.domain.file.controller;
 
-import com.idea5.four_cut_photos_map.domain.file.dto.response.UploadImageResp;
+import com.idea5.four_cut_photos_map.domain.file.dto.response.ImageUploadResponse;
+import com.idea5.four_cut_photos_map.domain.file.dto.response.ImageUploadResultResponse;
 import com.idea5.four_cut_photos_map.domain.file.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,15 +23,16 @@ public class FileUploadController {
 
     // 단일 이미지 업로드
     @PostMapping("/image")
-    public ResponseEntity<UploadImageResp> uploadImage(@RequestParam String category, @RequestParam MultipartFile file) {
-        UploadImageResp uploadImageResp = s3Service.uploadImage(category, file);
-        return ResponseEntity.ok(uploadImageResp);
+    public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam String category, @RequestParam MultipartFile file) {
+        ImageUploadResponse imageUploadResponse = s3Service.uploadImage(category, file);
+        return ResponseEntity.ok(imageUploadResponse);
     }
 
     // 다중 이미지 업로드
     @PostMapping("/images")
-    public ResponseEntity<List<UploadImageResp>> uploadImages(@RequestParam String category, @RequestParam List<MultipartFile> files) {
-        List<UploadImageResp> uploadImageResps = s3Service.uploadImages(category, files);
-        return ResponseEntity.ok(uploadImageResps);
+    public ResponseEntity<ImageUploadResultResponse> uploadImages(@RequestParam String category, @RequestParam List<MultipartFile> files) {
+        log.info("files: {}, size of file list: {}", files, files.size());
+        ImageUploadResultResponse response = s3Service.uploadImages(category, files);
+        return ResponseEntity.ok(response);
     }
 }

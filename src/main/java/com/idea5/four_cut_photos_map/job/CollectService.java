@@ -6,7 +6,7 @@ import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleType;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
-import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
+import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CollectService {
     private final MemberTitleLogRepository memberTitleLogRepository;
     private final FavoriteService favoriteService;
-    private final ReviewReadService reviewReadService;
+    private final ReviewRepository reviewRepository;
 
     // 대표 칭호 부여
     @Transactional
@@ -39,12 +39,12 @@ public class CollectService {
             // 1. 회원가입
             return true;
         } else if(memberTitle.getId() == MemberTitleType.FIRST_REVIEW.getCode()) {
-            if(reviewReadService.getReviewCntByWriter(member) >= 1) {
+            if(reviewRepository.countByWriter(member) >= 1) {
                 // 2. 첫번째 리뷰
                 return true;
             }
         } else if(memberTitle.getId() == MemberTitleType.MANY_REVIEW.getCode()) {
-            if(reviewReadService.getReviewCntByWriter(member) >= 3) {
+            if(reviewRepository.countByWriter(member) >= 3) {
                 // 3. 리뷰 5개 이상
                 return true;
             }

@@ -3,54 +3,25 @@ server:
   servlet:
     context-path: /
 
-
 spring:
-  # 개발모드 활성화
   profiles:
-    active: dev
     include:
       - base-addi
-
-  # MaraiDB -> MySQL
-  datasource:
-    url: jdbc:mysql://localhost:3306/four_cut_photos_map?useUnicode=true&characterEncoding=utf8&serverTimeZone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: user1
-    password: Ttest12341234@
-    hikari:
-
   cache:
     type: redis
-
-  # redis 설정
-  redis:
-    host: localhost
-    port: 6379
-
   jpa:
-    open-in-view: false # 영속성 컨텍스트의 생존 범위를 트랜잭션 범위로 한정
+    open-in-view: false               # 영속성 컨텍스트의 생존 범위를 트랜잭션 범위로 한정
     generate-ddl: true
-    show-sql: true # 콘솔창에 sql 출력
+    show-sql: true                    # 콘솔창에 sql 출력
     hibernate:
-      ddl-auto: update
       naming:
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
-#        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+    #        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
     properties:
       hibernate:
-        format_sql: true # sql문 이쁘게 출력
+        format_sql: true              # sql문 이쁘게 출력
         default_batch_fetch_size: 500 # 일대다 컬렉션 조회 시 성능 최적화 ( jpa 성능 개선을 위함 )
-
     defer-datasource-initialization: true
-
   sql:
     init:
-#      mode: always
       mode: never
-
-
-logging:
-  level:
-    org.hibernate.type: trace # 콘솔창에 조건에 바인딩되는 값 및 조회 결과 출력
-    com.app: debug # todo 패키지 수정
-

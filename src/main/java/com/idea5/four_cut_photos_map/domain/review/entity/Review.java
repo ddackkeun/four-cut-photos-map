@@ -1,10 +1,10 @@
 package com.idea5.four_cut_photos_map.domain.review.entity;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.review.dto.request.RequestReviewDto;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.ItemScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.PurityScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import lombok.*;
@@ -42,7 +42,7 @@ public class Review extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ItemScore item;
 
-    public Review update(RequestReviewDto dto) {
+    public Review update(ReviewRequest dto) {
         this.starRating = dto.getStarRating();
         this.content = dto.getContent();
         this.purity = PurityScore.valueOf(dto.getPurity());

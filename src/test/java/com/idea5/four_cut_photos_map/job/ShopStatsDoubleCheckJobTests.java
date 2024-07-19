@@ -8,9 +8,9 @@ import com.idea5.four_cut_photos_map.domain.favorite.repository.FavoriteReposito
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.ItemScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.PurityScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.score.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
