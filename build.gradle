@@ -77,6 +77,7 @@ dependencies {
 
     // aws 파일 업로드
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.241'
 
     // 이미지 리사이징 을 위한 라이브러리
     implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
