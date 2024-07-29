@@ -50,16 +50,21 @@ public class AuthController {
         log.info("Remote Addr = " + request.getRemoteAddr());
         log.info("Remote Host = " + request.getRemoteHost());
         log.info("client ip = " + Util.getClientIpAddr(request));
-        // 1. 인가 코드로 토큰 발급 요청
+
         String redirectURI = kakaoService.getRedirectURI(request);
         log.info("redirectURI = " + redirectURI);
+
+        // 1. 인가 코드로 토큰 발급 요청
         KakaoTokenResp kakaoTokenResp = kakaoService.getKakaoTokens(code, redirectURI);
+
         // 2. 토큰으로 사용자 정보 가져오기 요청
         KakaoUserInfoParam kakaoUserInfoParam = kakaoService.getKakaoUserInfo(kakaoTokenResp);
+
         // 3. 제공받은 사용자 정보(kakaoId)로 회원 검증(새로운 회원은 회원가입) -> 서비스 로그인
         LoginMemberParam loginMemberParam = memberService.login(kakaoUserInfoParam, kakaoTokenResp);
+
         // 4. 신규 회원은 뉴비 칭호 부여
-        if(loginMemberParam.isJoin())
+        if (loginMemberParam.isJoin())
             collectService.addJoinTitle(loginMemberParam.getMember());
         return ResponseEntity.ok(loginMemberParam.getJwtToken());
     }

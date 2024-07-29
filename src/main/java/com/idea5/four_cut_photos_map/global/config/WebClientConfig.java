@@ -8,13 +8,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
-    @Value("${map.kakao.first-key}")
+    @Value("${kakao.map.first-key}")
     private String FIRST_API_KEY;
-    @Value("${map.kakao.second-key}")
+    @Value("${kakao.map.second-key}")
     private String SECOND_API_KEY;
-    @Value("${map.kakao.third-key}")
+    @Value("${kakao.map.third-key}")
     private String THIRD_API_KEY;
-    @Value("${map.kakao.fourth-key}")
+    @Value("${kakao.map.fourth-key}")
     private String FOURTH_API_KEY;
 
     @Bean

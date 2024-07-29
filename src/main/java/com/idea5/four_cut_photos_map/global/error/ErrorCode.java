@@ -21,6 +21,7 @@ public enum ErrorCode {
     EXPIRED_ATK(HttpStatus.UNAUTHORIZED,"102", "만료된 액세스 토큰입니다."),
     EXPIRED_RTK(HttpStatus.UNAUTHORIZED,"103", "만료된 리프레쉬 토큰입니다."),
     INVALID_RTK(HttpStatus.BAD_REQUEST,"104", "잘못된 리프레쉬 토큰입니다."),
+    INVALID_REDIRECT_URI(HttpStatus.BAD_REQUEST,"105", "잘못된 REDIRECT URI 입니다."),
 
     DUPLICATE_FAVORITE(HttpStatus.CONFLICT, "409", "해당 지점은 이미 찜 되어있습니다."),
     DELETED_FAVORITE(HttpStatus.CONFLICT, "409", "해당 지점은 이미 찜 되어있지 않습니다."),

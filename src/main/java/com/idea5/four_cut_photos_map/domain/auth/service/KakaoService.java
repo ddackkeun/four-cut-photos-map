@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idea5.four_cut_photos_map.domain.auth.dto.param.KakaoUserInfoParam;
 import com.idea5.four_cut_photos_map.domain.auth.dto.response.KakaoTokenResp;
+import com.idea5.four_cut_photos_map.global.error.ErrorCode;
+import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +18,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @See <a href="https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api">kakao rest api</a>
@@ -29,20 +33,28 @@ public class KakaoService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${oauth2.kakao.client-id}")
+    @Value("${kakao.oauth2.client-id}")
     private String clientId;
 
-    @Value("${oauth2.kakao.redirect-uri}")
-    private String redirectURI;
-
-    @Value("${oauth2.kakao.dev-redirect-uri}")
+    @Value("${kakao.oauth2.dev-redirect-uri}")
     private String devRedirectURI;
+
+    @Value("${kakao.oauth2.prod-redirect-uri}")
+    private String prodRedirectURI;
 
     // 요청 origin 에 따른 redirect-uri 조회
     public String getRedirectURI(HttpServletRequest request) {
         String origin = request.getHeader("Origin");
-        if(origin == null) return devRedirectURI;
-        return origin + redirectURI;
+        log.info("origin: {}", origin);
+
+        return Optional.ofNullable(origin)
+                .map(o -> {
+                    if(!Objects.equals(o, prodRedirectURI)) {
+                        throw new BusinessException(ErrorCode.INVALID_REDIRECT_URI);
+                    }
+                    return prodRedirectURI;
+                })
+                .orElse(devRedirectURI);
     }
 
     /**
