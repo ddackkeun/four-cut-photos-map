@@ -13,7 +13,7 @@ import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
-import com.idea5.four_cut_photos_map.domain.review.service.RequestReviewServiceImpl;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewWriteServiceImpl;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
@@ -38,7 +38,7 @@ public class MemberService {
     private final MemberTitleService memberTitleService;
     private final FavoriteService favoriteService;
     private final JwtService jwtService;
-    private final RequestReviewServiceImpl requestReviewServiceImpl;
+    private final ReviewWriteServiceImpl requestReviewServiceImpl;
 
     // 서비스 로그인
     @Transactional

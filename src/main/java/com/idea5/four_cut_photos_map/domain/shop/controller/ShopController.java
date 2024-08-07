@@ -4,8 +4,7 @@ package com.idea5.four_cut_photos_map.domain.shop.controller;
 import com.idea5.four_cut_photos_map.domain.favorite.entity.Favorite;
 import com.idea5.four_cut_photos_map.domain.favorite.service.FavoriteService;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.service.GetReviewService;
-import com.idea5.four_cut_photos_map.domain.review.service.GetReviewServiceImpl;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.KakaoMapSearchDto;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.ResponseShopBrand;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.ResponseShopDetail;
@@ -37,7 +36,7 @@ import java.util.Map;
 public class ShopController {
     private final ShopService shopService;
     private final FavoriteService favoriteService;
-    private final GetReviewService getReviewService;
+    private final ReviewReadService reviewReadService;
     private final ShopTitleLogService shopTitleLogService;
 
 
@@ -135,7 +134,7 @@ public class ShopController {
         Shop dbShop = shopService.findById(id);
         ResponseShopDetail shopDetailDto = shopService.setResponseDto(dbShop, userLat, userLng);
 
-        List<ShopReviewResponse> recentReviewsForShop = getReviewService.getRecentReviewsForShop(id);
+        List<ShopReviewResponse> recentReviewsForShop = reviewReadService.getRecentReviewsForShop(id);
         shopDetailDto.setRecentReviews(recentReviewsForShop);
 
         if (memberContext != null) {

@@ -4,7 +4,6 @@ import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
@@ -21,13 +20,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class GetReviewServiceImpl implements GetReviewService {
+public class ReviewReadServiceImpl implements ReviewReadService {
     private final ReviewRepository reviewRepository;
     private final ShopRepository shopRepository;
     private final MemberTitleLogRepository memberTitleLogRepository;
@@ -37,15 +37,8 @@ public class GetReviewServiceImpl implements GetReviewService {
     private final ShopMapper shopMapper;
 
     @Override
-    public ReviewResponseDetail getReviewById(Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
-
-        return ReviewResponseDetail.builder()
-                .reviewInfo(reviewMapper.toResponse(review))
-                .memberInfo(memberMapper.toResponse(review.getWriter()))
-                .shopInfo(shopMapper.toResponse(review.getShop(), review.getShop().getBrand()))
-                .build();
+    public Optional<Review> getReview(Long reviewId) {
+        return reviewRepository.findById(reviewId);
     }
 
     @Override

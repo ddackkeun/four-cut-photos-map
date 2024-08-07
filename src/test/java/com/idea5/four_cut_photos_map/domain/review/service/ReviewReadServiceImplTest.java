@@ -7,7 +7,10 @@ import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.*;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
@@ -20,7 +23,10 @@ import com.idea5.four_cut_photos_map.domain.shop.mapper.ShopMapper;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,13 +36,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class GetReviewServiceImplTest {
+public class ReviewReadServiceImplTest {
     @InjectMocks
-    private GetReviewServiceImpl getReviewServiceImpl;
+    private ReviewReadServiceImpl reviewReadServiceImpl;
     @Mock
     private ReviewRepository reviewRepository;
     @Mock
@@ -53,7 +59,7 @@ public class GetReviewServiceImplTest {
 
     @Nested
     @DisplayName("단일 리뷰 검색")
-    class GetReviewById {
+    class GetReview {
         private Member writer;
         private Brand brand;
         private Shop shop;
@@ -72,52 +78,43 @@ public class GetReviewServiceImplTest {
         class SuccessCase {
             @Test
             @DisplayName("해당 id를 가진 리뷰 존재")
-            void getReviewByIdSuccess1() {
+            void getReview_found() {
                 //given
                 Long reviewId = 1L;
-                ReviewResponse reviewResponse = ReviewResponse.builder().id(review.getId()).createDate(review.getCreateDate()).modifyDate(review.getModifyDate()).starRating(review.getStarRating()).content(review.getContent()).purity(review.getPurity()).retouch(review.getRetouch()).item(review.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).build();
-                ShopResponse shopResponse = ShopResponse.builder().id(shop.getId()).brand(brand.getBrandName()).placeName(shop.getPlaceName()).build();
+
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
 
                 // when
-                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-                when(reviewMapper.toResponse(any(Review.class))).thenReturn(reviewResponse);
-                when(memberMapper.toResponse(any(Member.class))).thenReturn(memberResponse);
-                when(shopMapper.toResponse(any(Shop.class), any(Brand.class))).thenReturn(shopResponse);
+                Optional<Review> response = reviewReadServiceImpl.getReview(reviewId);
 
-                ReviewResponseDetail reviewResponseDetail = getReviewServiceImpl.getReviewById(reviewId);
+                //then
+                assertTrue(response.isPresent());
+                assertEquals(reviewId, response.get().getId());
+
+                verify(reviewRepository, times(1)).findById(reviewId);
+            }
+
+            @Test
+            @DisplayName("해당 id의 리뷰가 존재하지 않음")
+            void getReview_notFound() {
+                // given
+                Long reviewId = 1L;
+
+                when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+
+                // when
+                Optional<Review> response = reviewReadServiceImpl.getReview(reviewId);
 
                 // then
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getId(), review.getId());
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getStarRating(), review.getStarRating());
-                Assertions.assertEquals(reviewResponseDetail.getReviewInfo().getContent(), review.getContent());
-
-                Assertions.assertEquals(reviewResponseDetail.getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(reviewResponseDetail.getMemberInfo().getNickname(), writer.getNickname());
-
-                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getBrand(), brand.getBrandName());
-                Assertions.assertEquals(reviewResponseDetail.getShopInfo().getPlaceName(), shop.getPlaceName());
+                assertFalse(response.isPresent());
+                verify(reviewRepository, times(1)).findById(reviewId);
             }
         }
 
         @Nested
         @DisplayName("실패")
         class FailCase {
-            @Test
-            @DisplayName("해당 id의 리뷰 존재하지 않음")
-            void getReviewByIdFail1() {
-                // given
-                Long reviewId = 2L;
-                BusinessException exception = new BusinessException(ErrorCode.REVIEW_NOT_FOUND);
 
-                // when
-                when(reviewRepository.findById(reviewId)).thenThrow(exception);
-
-                // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> getReviewServiceImpl.getReviewById(reviewId));
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
-            }
         }
     }
 
@@ -155,8 +152,8 @@ public class GetReviewServiceImplTest {
                 List<Review> reviews = new ArrayList<>();
                 reviews.add(review1);
                 reviews.add(review2);
-                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate()).modifyDate(review1.getModifyDate()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
-                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate()).modifyDate(review2.getModifyDate()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
+                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
+                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
                 ShopResponse shopResponse = ShopResponse.builder().id(shop.getId()).brand(brand.getBrandName()).placeName(shop.getPlaceName()).build();
 
                 // when
@@ -165,20 +162,20 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
                 when(shopMapper.toResponse(shop, brand)).thenReturn(shopResponse);
 
-                List<MemberReviewResponse> memberReviews = getReviewServiceImpl.getAllReviewsForMember(memberId);
+                List<MemberReviewResponse> memberReviews = reviewReadServiceImpl.getAllReviewsForMember(memberId);
 
                 // then
-                Assertions.assertEquals(memberReviews.size(), 2);
+                assertEquals(memberReviews.size(), 2);
 
-                Assertions.assertEquals(memberReviews.get(0).getReviewInfo().getId(), review1.getId());
-                Assertions.assertEquals(memberReviews.get(0).getReviewInfo().getContent(), review1.getContent());
-                Assertions.assertEquals(memberReviews.get(0).getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(memberReviews.get(0).getShopInfo().getPlaceName(), shop.getPlaceName());
+                assertEquals(memberReviews.get(0).getReviewInfo().getId(), review1.getId());
+                assertEquals(memberReviews.get(0).getReviewInfo().getContent(), review1.getContent());
+                assertEquals(memberReviews.get(0).getShopInfo().getId(), shop.getId());
+                assertEquals(memberReviews.get(0).getShopInfo().getPlaceName(), shop.getPlaceName());
 
-                Assertions.assertEquals(memberReviews.get(1).getReviewInfo().getId(), review2.getId());
-                Assertions.assertEquals(memberReviews.get(1).getReviewInfo().getContent(), review2.getContent());
-                Assertions.assertEquals(memberReviews.get(1).getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(memberReviews.get(1).getShopInfo().getPlaceName(), shop.getPlaceName());
+                assertEquals(memberReviews.get(1).getReviewInfo().getId(), review2.getId());
+                assertEquals(memberReviews.get(1).getReviewInfo().getContent(), review2.getContent());
+                assertEquals(memberReviews.get(1).getShopInfo().getId(), shop.getId());
+                assertEquals(memberReviews.get(1).getShopInfo().getPlaceName(), shop.getPlaceName());
 
             }
 
@@ -189,7 +186,7 @@ public class GetReviewServiceImplTest {
                 List<Review> reviews = new ArrayList<>();
                 reviews.add(review3);
 
-                ReviewResponse reviewResponse = ReviewResponse.builder().id(review3.getId()).createDate(review3.getCreateDate()).modifyDate(review3.getModifyDate()).starRating(review3.getStarRating()).content(review3.getContent()).purity(review3.getPurity()).retouch(review3.getRetouch()).item(review3.getItem()).build();
+                ReviewResponse reviewResponse = ReviewResponse.builder().id(review3.getId()).createDate(review3.getCreateDate().toString()).modifyDate(review3.getModifyDate().toString()).starRating(review3.getStarRating()).content(review3.getContent()).purity(review3.getPurity()).retouch(review3.getRetouch()).item(review3.getItem()).build();
                 ShopResponse shopResponse = ShopResponse.builder().id(shop.getId()).brand(brand.getBrandName()).placeName(shop.getPlaceName()).build();
 
                 // when
@@ -197,16 +194,16 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(review3)).thenReturn(reviewResponse);
                 when(shopMapper.toResponse(shop, brand)).thenReturn(shopResponse);
 
-                List<MemberReviewResponse> memberReviews = getReviewServiceImpl.getAllReviewsForMember(memberId);
+                List<MemberReviewResponse> memberReviews = reviewReadServiceImpl.getAllReviewsForMember(memberId);
 
                 // then
-                Assertions.assertEquals(memberReviews.size(), 1);
+                assertEquals(memberReviews.size(), 1);
 
-                Assertions.assertEquals(memberReviews.get(0).getReviewInfo().getId(), review3.getId());
-                Assertions.assertEquals(memberReviews.get(0).getReviewInfo().getContent(), review3.getContent());
+                assertEquals(memberReviews.get(0).getReviewInfo().getId(), review3.getId());
+                assertEquals(memberReviews.get(0).getReviewInfo().getContent(), review3.getContent());
 
-                Assertions.assertEquals(memberReviews.get(0).getShopInfo().getId(), shop.getId());
-                Assertions.assertEquals(memberReviews.get(0).getShopInfo().getPlaceName(), shop.getPlaceName());
+                assertEquals(memberReviews.get(0).getShopInfo().getId(), shop.getId());
+                assertEquals(memberReviews.get(0).getShopInfo().getPlaceName(), shop.getPlaceName());
             }
 
             @Test
@@ -219,10 +216,10 @@ public class GetReviewServiceImplTest {
                 // when
                 when(reviewRepository.findAllByWriterIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
 
-                List<MemberReviewResponse> memberReviews = getReviewServiceImpl.getAllReviewsForMember(memberId);
+                List<MemberReviewResponse> memberReviews = reviewReadServiceImpl.getAllReviewsForMember(memberId);
 
                 // then
-                Assertions.assertEquals(memberReviews.size(), 0);
+                assertEquals(memberReviews.size(), 0);
             }
         }
 
@@ -271,8 +268,8 @@ public class GetReviewServiceImplTest {
                 Long shopId = 1L;
                 List<Review> reviews = Arrays.asList(review1, review2);
                 String mainMemberTitleName = "";
-                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate()).modifyDate(review1.getModifyDate()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
-                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate()).modifyDate(review2.getModifyDate()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
+                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
+                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
                 MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(mainMemberTitleName).build();
 
                 // when
@@ -283,22 +280,22 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
                 when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
 
-                List<ShopReviewResponse> result = getReviewServiceImpl.getAllReviewsForShop(shopId);
+                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
                 // then
-                Assertions.assertEquals(result.size(), reviews.size());
+                assertEquals(result.size(), reviews.size());
 
-                Assertions.assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
-                Assertions.assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
+                assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
+                assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
+                assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
+                assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
 
-                Assertions.assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
-                Assertions.assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
-                Assertions.assertEquals(result.get(1).getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(result.get(1).getMemberInfo().getNickname(), writer.getNickname());
-                Assertions.assertEquals(result.get(1).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
+                assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
+                assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
+                assertEquals(result.get(1).getMemberInfo().getId(), writer.getId());
+                assertEquals(result.get(1).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(1).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
             }
 
             @Test
@@ -309,8 +306,8 @@ public class GetReviewServiceImplTest {
                 List<Review> reviews = Arrays.asList(review1, review2);
                 MemberTitle memberTitle = MemberTitle.builder().name("칭호명").standard("획득방법").content("설명").colorImageUrl("컬러 이미지").bwImageUrl("흑백 이미지").build();
                 MemberTitleLog memberTitleLog = MemberTitleLog.builder().member(writer).memberTitle(memberTitle).isMain(true).build();
-                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate()).modifyDate(review1.getModifyDate()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
-                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate()).modifyDate(review2.getModifyDate()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
+                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
+                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
                 MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(memberTitle.getName()).build();
 
                 // when
@@ -321,22 +318,22 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
                 when(memberMapper.toResponse(writer, memberTitle.getName())).thenReturn(memberResponse);
 
-                List<ShopReviewResponse> result = getReviewServiceImpl.getAllReviewsForShop(shopId);
+                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
                 // then
-                Assertions.assertEquals(result.size(), reviews.size());
+                assertEquals(result.size(), reviews.size());
 
-                Assertions.assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
-                Assertions.assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), memberTitle.getName());
+                assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
+                assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
+                assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
+                assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), memberTitle.getName());
 
-                Assertions.assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
-                Assertions.assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
-                Assertions.assertEquals(result.get(1).getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(result.get(1).getMemberInfo().getNickname(), writer.getNickname());
-                Assertions.assertEquals(result.get(1).getMemberInfo().getMainMemberTitle(), memberTitle.getName());
+                assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
+                assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
+                assertEquals(result.get(1).getMemberInfo().getId(), writer.getId());
+                assertEquals(result.get(1).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(1).getMemberInfo().getMainMemberTitle(), memberTitle.getName());
             }
 
             @Test
@@ -346,7 +343,7 @@ public class GetReviewServiceImplTest {
                 Long shopId = 2L;
                 List<Review> reviews = Arrays.asList(review3);
                 String mainMemberTitleName = "";
-                ReviewResponse reviewResponse = ReviewResponse.builder().id(review3.getId()).createDate(review3.getCreateDate()).modifyDate(review3.getModifyDate()).starRating(review3.getStarRating()).content(review3.getContent()).purity(review3.getPurity()).retouch(review3.getRetouch()).item(review3.getItem()).build();
+                ReviewResponse reviewResponse = ReviewResponse.builder().id(review3.getId()).createDate(review3.getCreateDate().toString()).modifyDate(review3.getModifyDate().toString()).starRating(review3.getStarRating()).content(review3.getContent()).purity(review3.getPurity()).retouch(review3.getRetouch()).item(review3.getItem()).build();
                 MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(mainMemberTitleName).build();
 
                 // when
@@ -356,16 +353,16 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(review3)).thenReturn(reviewResponse);
                 when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
 
-                List<ShopReviewResponse> result = getReviewServiceImpl.getAllReviewsForShop(shopId);
+                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
                 // then
-                Assertions.assertEquals(result.size(), reviews.size());
+                assertEquals(result.size(), reviews.size());
 
-                Assertions.assertEquals(result.get(0).getReviewInfo().getId(), review3.getId());
-                Assertions.assertEquals(result.get(0).getReviewInfo().getContent(), review3.getContent());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
-                Assertions.assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
+                assertEquals(result.get(0).getReviewInfo().getId(), review3.getId());
+                assertEquals(result.get(0).getReviewInfo().getContent(), review3.getContent());
+                assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
+                assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
             }
 
             @Test
@@ -379,10 +376,10 @@ public class GetReviewServiceImplTest {
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop3));
                 when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
 
-                List<ShopReviewResponse> result = getReviewServiceImpl.getAllReviewsForShop(shopId);
+                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
                 // then
-                Assertions.assertEquals(0, result.size());
+                assertEquals(0, result.size());
             }
         }
 
@@ -400,9 +397,9 @@ public class GetReviewServiceImplTest {
                 when(shopRepository.findById(shopId)).thenThrow(exception);
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> getReviewServiceImpl.getAllReviewsForShop(shopId));
-                Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
+                BusinessException resultException = assertThrows(exception.getClass(), () -> reviewReadServiceImpl.getAllReviewsForShop(shopId));
+                assertEquals(resultException.getErrorCode(), exception.getErrorCode());
+                assertEquals(resultException.getMessage(), exception.getMessage());
             }
         }
     }
@@ -436,8 +433,8 @@ public class GetReviewServiceImplTest {
                     .map(review -> {
                         return ReviewResponse.builder()
                                 .id(review.getId())
-                                .createDate(review.getCreateDate())
-                                .modifyDate(review.getModifyDate())
+                                .createDate(review.getCreateDate().toString())
+                                .modifyDate(review.getModifyDate().toString())
                                 .starRating(review.getStarRating())
                                 .content(review.getContent())
                                 .purity(review.getPurity())
@@ -470,13 +467,13 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(reviews.get(2))).thenReturn(reviewResponses.get(2));
                 when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
 
-                List<ShopReviewResponse> result = getReviewServiceImpl.getRecentReviewsForShop(shopId);
+                List<ShopReviewResponse> result = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
 
                 // then
-                Assertions.assertEquals(result.size(), reviewCnt);
-                Assertions.assertEquals(result.get(0).getReviewInfo().getId(), reviews.get(0).getId());
-                Assertions.assertEquals(result.get(1).getReviewInfo().getId(), reviews.get(1).getId());
-                Assertions.assertEquals(result.get(2).getReviewInfo().getId(), reviews.get(2).getId());
+                assertEquals(result.size(), reviewCnt);
+                assertEquals(result.get(0).getReviewInfo().getId(), reviews.get(0).getId());
+                assertEquals(result.get(1).getReviewInfo().getId(), reviews.get(1).getId());
+                assertEquals(result.get(2).getReviewInfo().getId(), reviews.get(2).getId());
             }
 
             @Test
@@ -496,12 +493,12 @@ public class GetReviewServiceImplTest {
                 when(reviewMapper.toResponse(reviews.get(1))).thenReturn(reviewResponses.get(1));
                 when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
 
-                List<ShopReviewResponse> result = getReviewServiceImpl.getRecentReviewsForShop(shopId);
+                List<ShopReviewResponse> result = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
 
                 // then
-                Assertions.assertEquals(result.size(), reviewCnt);
-                Assertions.assertEquals(result.get(0).getReviewInfo().getId(), reviews.get(0).getId());
-                Assertions.assertEquals(result.get(1).getReviewInfo().getId(), reviews.get(1).getId());
+                assertEquals(result.size(), reviewCnt);
+                assertEquals(result.get(0).getReviewInfo().getId(), reviews.get(0).getId());
+                assertEquals(result.get(1).getReviewInfo().getId(), reviews.get(1).getId());
             }
         }
     }
@@ -551,12 +548,12 @@ public class GetReviewServiceImplTest {
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
                 when(reviewRepository.findAllByShopId(shopId)).thenReturn(reviews);
 
-                ShopReviewInfoDto result = getReviewServiceImpl.getShopReviewInfo(shopId);
+                ShopReviewInfoDto result = reviewReadServiceImpl.getShopReviewInfo(shopId);
 
                 // then
-                Assertions.assertEquals(result.getShopId(), shopId);
-                Assertions.assertEquals(result.getReviewCnt(), reviewCount);
-                Assertions.assertEquals(result.getStarRatingAvg(), starRatingAvg);
+                assertEquals(result.getShopId(), shopId);
+                assertEquals(result.getReviewCnt(), reviewCount);
+                assertEquals(result.getStarRatingAvg(), starRatingAvg);
             }
 
             @Test
@@ -572,12 +569,12 @@ public class GetReviewServiceImplTest {
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
                 when(reviewRepository.findAllByShopId(shopId)).thenReturn(reviews);
 
-                ShopReviewInfoDto result = getReviewServiceImpl.getShopReviewInfo(shopId);
+                ShopReviewInfoDto result = reviewReadServiceImpl.getShopReviewInfo(shopId);
 
                 // then
-                Assertions.assertEquals(result.getShopId(), shopId);
-                Assertions.assertEquals(result.getReviewCnt(), reviewCount);
-                Assertions.assertEquals(result.getStarRatingAvg(), starRatingAvg);
+                assertEquals(result.getShopId(), shopId);
+                assertEquals(result.getReviewCnt(), reviewCount);
+                assertEquals(result.getStarRatingAvg(), starRatingAvg);
             }
         }
 
@@ -595,9 +592,9 @@ public class GetReviewServiceImplTest {
                 when(shopRepository.findById(shopId)).thenThrow(exception);
 
                 // then
-                BusinessException resultException = Assertions.assertThrows(exception.getClass(), () -> getReviewServiceImpl.getShopReviewInfo(shopId));
-                Assertions.assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                Assertions.assertEquals(resultException.getMessage(), exception.getMessage());
+                BusinessException resultException = assertThrows(exception.getClass(), () -> reviewReadServiceImpl.getShopReviewInfo(shopId));
+                assertEquals(resultException.getErrorCode(), exception.getErrorCode());
+                assertEquals(resultException.getMessage(), exception.getMessage());
             }
         }
     }

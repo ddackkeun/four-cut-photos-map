@@ -1,10 +1,12 @@
 package com.idea5.four_cut_photos_map.domain.review.controller;
 
 import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponseDetail;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewDetailResponse;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.service.GetReviewService;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
+import com.idea5.four_cut_photos_map.usecase.GetReviewUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,16 +23,15 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/reviews")
-public class GetReviewController {
-    private final GetReviewService getReviewService;
-
+public class ReviewReadController {
+    private final ReviewReadService reviewReadService;
+    private final GetReviewUseCase getReviewUseCase;
     /**
      * 리뷰 단건 조회
      */
     @GetMapping("/{review-id}")
-    public ResponseEntity<ReviewResponseDetail> getReview(@PathVariable("review-id") Long reviewId) {
-        ReviewResponseDetail response = getReviewService.getReviewById(reviewId);
-
+    public ResponseEntity<ReviewDetailResponse> getReview(@PathVariable("review-id") Long reviewId) {
+        ReviewDetailResponse response = getReviewUseCase.execute(reviewId);
         return ResponseEntity.ok(response);
     }
 
@@ -40,7 +41,7 @@ public class GetReviewController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/member")
     public ResponseEntity<List<MemberReviewResponse>> getAllReviewsForMember(@AuthenticationPrincipal MemberContext memberContext) {
-        List<MemberReviewResponse> response = getReviewService.getAllReviewsForMember(memberContext.getId());
+        List<MemberReviewResponse> response = reviewReadService.getAllReviewsForMember(memberContext.getId());
 
         return ResponseEntity.ok(response);
     }
@@ -50,7 +51,7 @@ public class GetReviewController {
      */
     @GetMapping("/shop/{shop-id}")
     public ResponseEntity<List<ShopReviewResponse>> getAllReviewsForShop(@PathVariable("shop-id") Long shopId) {
-        List<ShopReviewResponse> response = getReviewService.getAllReviewsForShop(shopId);
+        List<ShopReviewResponse> response = reviewReadService.getAllReviewsForShop(shopId);
 
         return ResponseEntity.ok(response);
     }

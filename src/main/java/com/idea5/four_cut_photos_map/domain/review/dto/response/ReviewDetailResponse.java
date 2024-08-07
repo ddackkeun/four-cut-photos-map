@@ -12,7 +12,7 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ReviewResponseDetail {
+public class ReviewDetailResponse {
 
     // Review 관련 정보
     private ReviewResponse reviewInfo;

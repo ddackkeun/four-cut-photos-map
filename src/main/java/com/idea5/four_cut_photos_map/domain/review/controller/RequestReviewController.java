@@ -2,7 +2,7 @@ package com.idea5.four_cut_photos_map.domain.review.controller;
 
 import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.service.RequestReviewService;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewWriteService;
 import com.idea5.four_cut_photos_map.domain.shop.service.ShopService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RequestMapping("/reviews")
 public class RequestReviewController {
-    private final RequestReviewService requestReviewService;
+    private final ReviewWriteService reviewWriteService;
     private final ShopService shopService;
 
     /**
@@ -30,7 +30,7 @@ public class RequestReviewController {
     public ResponseEntity<String> writeReview(@PathVariable("shop-id") Long shopId,
                                               @AuthenticationPrincipal MemberContext memberContext,
                                               @Valid @RequestBody ReviewRequest request) {
-        ReviewResponse reviewResponse = requestReviewService.writeReviewForShop(shopId, memberContext.getId(), request);
+        ReviewResponse reviewResponse = reviewWriteService.writeReviewForShop(shopId, memberContext.getId(), request);
         log.info("writeReviewForShop reviewResponse: {}", reviewResponse);
 
         // TODO 추후 배치 등 이용해서 상점 정보 갱신
@@ -47,7 +47,7 @@ public class RequestReviewController {
     public ResponseEntity<String> modifyReview(@PathVariable("review-id") Long reviewId,
                                                @AuthenticationPrincipal MemberContext memberContext,
                                                @Valid @RequestBody ReviewRequest request) {
-        Long shopId = requestReviewService.modifyReview(memberContext.getId(), reviewId, request);
+        Long shopId = reviewWriteService.modifyReview(memberContext.getId(), reviewId, request);
         log.info("shopId of modified reviews: {}", shopId);
 
         // TODO 추후 배치 등 이용해서 상점 정보 갱신
@@ -63,7 +63,7 @@ public class RequestReviewController {
     @DeleteMapping("/{review-id}")
     public ResponseEntity<String> deleteReview(@PathVariable("review-id") Long reviewId,
                                                @AuthenticationPrincipal MemberContext memberContext) {
-        Long shopId = requestReviewService.deleteReview(memberContext.getId(), reviewId);
+        Long shopId = reviewWriteService.deleteReview(memberContext.getId(), reviewId);
 
         // TODO 추후 배치 등 이용해서 상점 정보 갱신
         shopService.updateReviewInfo(shopId);

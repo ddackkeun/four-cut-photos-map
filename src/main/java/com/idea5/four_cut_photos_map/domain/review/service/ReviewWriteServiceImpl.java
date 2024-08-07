@@ -20,7 +20,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class RequestReviewServiceImpl implements RequestReviewService {
+public class ReviewWriteServiceImpl implements ReviewWriteService {
     private final ReviewRepository reviewRepository;
     private final ShopRepository shopRepository;
     private final MemberRepository memberRepository;

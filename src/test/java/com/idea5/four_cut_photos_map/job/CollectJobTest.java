@@ -15,6 +15,7 @@ import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
@@ -225,7 +226,7 @@ class CollectJobTest {
         Member member = new Member();
         memberRepository.save(member);
         Shop shop = shopRepository.findById(1L).orElse(null);
-        reviewRepository.save(new Review(member, shop, 4, "좋아요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
+        reviewRepository.save(new Review(member, shop, 4, "좋아요", ReviewStatus.REGISTERED,PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
 
         // when
         collectJob.add();
@@ -261,9 +262,9 @@ class CollectJobTest {
         Shop shop2 = shopRepository.findById(2L).orElse(null);
         Shop shop3 = shopRepository.findById(3L).orElse(null);
         // TODO: 리뷰 3개 작성
-        reviewRepository.save(new Review(member, shop1, 4, "좋아요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
-        reviewRepository.save(new Review(member, shop2, 4, "좋아요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
-        reviewRepository.save(new Review(member, shop3, 4, "좋아요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
+        reviewRepository.save(new Review(member, shop1, 4, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
+        reviewRepository.save(new Review(member, shop2, 4, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
+        reviewRepository.save(new Review(member, shop3, 4, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.BAD));
 
         // when
         collectJob.add();

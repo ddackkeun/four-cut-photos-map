@@ -11,6 +11,7 @@ import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
@@ -66,11 +67,11 @@ public class ShopStatsDoubleCheckJobTests {
         Shop shop1 = shopRepository.save(new Shop(brand1, "인생네컷 서울숲노가리마트로드점", "서울 성동구 서울숲2길 48", 0, 0, 0.0));
         Shop shop2 = shopRepository.save(new Shop(brand2, "포토이즘박스 성수점", "서울 성동구 서울숲2길 17-2", 0, 0, 0.0));
 
-        reviewRepository.save(new Review(member, shop1, 3, "좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
-        reviewRepository.save(new Review(member, shop1, 5, "재방문! 만족!", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member, shop2, 5, "소품 다양해서 좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member, shop2, 4, "재방문!", PurityScore.GOOD, RetouchScore.BAD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member, shop2, 4, "가까워서 자주 가요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
+        reviewRepository.save(new Review(member, shop1, 3, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
+        reviewRepository.save(new Review(member, shop1, 5, "재방문! 만족!", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member, shop2, 5, "소품 다양해서 좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member, shop2, 4, "재방문!", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.BAD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member, shop2, 4, "가까워서 자주 가요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
 
         // when
         //doubleCheckJob.updateFavoriteCnt();
@@ -140,11 +141,11 @@ public class ShopStatsDoubleCheckJobTests {
         Shop shop1 = shopRepository.save(new Shop(brand1, "인생네컷 서울숲노가리마트로드점", "서울 성동구 서울숲2길 48", 0, 0, 0.0));
         Shop shop2 = shopRepository.save(new Shop(brand2, "포토이즘박스 성수점", "서울 성동구 서울숲2길 17-2", 0, 0, 0.0));
 
-        reviewRepository.save(new Review(member1, shop1, 3, "좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
-        reviewRepository.save(new Review(member1, shop1, 5, "재방문! 만족!", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member1, shop2, 5, "소품 다양해서 좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member1, shop2, 4, "재방문!", PurityScore.GOOD, RetouchScore.BAD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member2, shop2, 4, "가까워서 자주 가요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
+        reviewRepository.save(new Review(member1, shop1, 3, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
+        reviewRepository.save(new Review(member1, shop1, 5, "재방문! 만족!", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member1, shop2, 5, "소품 다양해서 좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member1, shop2, 4, "재방문!", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.BAD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member2, shop2, 4, "가까워서 자주 가요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
 
         favoriteRepository.save(new Favorite(member1, shop1));
         favoriteRepository.save(new Favorite(member2, shop1));

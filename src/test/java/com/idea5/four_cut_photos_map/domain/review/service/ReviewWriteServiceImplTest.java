@@ -24,15 +24,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RequestReviewServiceImplTest {
+public class ReviewWriteServiceImplTest {
     @InjectMocks
-    private RequestReviewServiceImpl requestReviewServiceImpl;
+    private ReviewWriteServiceImpl requestReviewServiceImpl;
     @Mock
     private ReviewRepository reviewRepository;
 
@@ -62,7 +63,7 @@ public class RequestReviewServiceImplTest {
                 Shop shop = new Shop();
                 Member writer = new Member();
                 Review review = new Review();
-                ReviewResponse response = new ReviewResponse(1L, LocalDateTime.now(), LocalDateTime.now(), request.getStarRating(), request.getContent(), PurityScore.valueOf(request.getPurity()), RetouchScore.valueOf(request.getRetouch()), ItemScore.valueOf(request.getItem()));
+                ReviewResponse response = new ReviewResponse(1L, LocalDateTime.now().toString(), LocalDateTime.now().toString(), request.getStarRating(), request.getContent(), PurityScore.valueOf(request.getPurity()), RetouchScore.valueOf(request.getRetouch()), ItemScore.valueOf(request.getItem()), new ArrayList<>());
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
@@ -94,7 +95,7 @@ public class RequestReviewServiceImplTest {
                 Shop shop = new Shop();
                 Member writer = new Member();
                 Review review = new Review();
-                ReviewResponse response = new ReviewResponse(1L, LocalDateTime.now(), LocalDateTime.now(), request.getStarRating(), request.getContent(), PurityScore.UNSELECTED, RetouchScore.UNSELECTED, ItemScore.UNSELECTED);
+                ReviewResponse response = new ReviewResponse(1L, LocalDateTime.now().toString(), LocalDateTime.now().toString(), request.getStarRating(), request.getContent(), PurityScore.UNSELECTED, RetouchScore.UNSELECTED, ItemScore.UNSELECTED, new ArrayList<>());
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));

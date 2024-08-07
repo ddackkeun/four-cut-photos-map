@@ -11,6 +11,7 @@ import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
@@ -137,15 +138,15 @@ public class ShopTitleCollectJobTests {
         Shop shop2 = shopRepository.save(new Shop(brand2, "포토이즘박스 성수점", "서울 성동구 서울숲2길 17-2", 0, 0, 0.0));
 
         // shop1 review (purity avg 0.75)
-        reviewRepository.save(new Review(member1, shop1, 3, "좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
-        reviewRepository.save(new Review(member1, shop1, 5, "재방문! 만족!", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member2, shop1, 5, "소품 다양해서 좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member3, shop1, 5, "보통이에요", PurityScore.BAD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member1, shop1, 3, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
+        reviewRepository.save(new Review(member1, shop1, 5, "재방문! 만족!", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member2, shop1, 5, "소품 다양해서 좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member3, shop1, 5, "보통이에요", ReviewStatus.REGISTERED, PurityScore.BAD, RetouchScore.GOOD, ItemScore.GOOD));
 
         // shop2 review (purity avg 1.0)
-        reviewRepository.save(new Review(member1, shop2, 4, "자연스럽게 잘 나와요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member2, shop2, 4, "가까워서 자주 가요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
-        reviewRepository.save(new Review(member3, shop2, 4, "매장이 깨끗해요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.UNSELECTED));
+        reviewRepository.save(new Review(member1, shop2, 4, "자연스럽게 잘 나와요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member2, shop2, 4, "가까워서 자주 가요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
+        reviewRepository.save(new Review(member3, shop2, 4, "매장이 깨끗해요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.UNSELECTED));
 
         // when
         LocalDateTime now = LocalDateTime.now();
@@ -208,15 +209,15 @@ public class ShopTitleCollectJobTests {
         favoriteService.save(shop2.getId(), member3);
 
         // shop1 review (purity avg 0.75)
-        reviewRepository.save(new Review(member1, shop1, 3, "좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
-        reviewRepository.save(new Review(member1, shop1, 5, "재방문! 만족!", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member2, shop1, 5, "소품 다양해서 좋아요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member3, shop1, 5, "보통이에요", PurityScore.BAD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member1, shop1, 3, "좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.BAD));
+        reviewRepository.save(new Review(member1, shop1, 5, "재방문! 만족!", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member2, shop1, 5, "소품 다양해서 좋아요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member3, shop1, 5, "보통이에요", ReviewStatus.REGISTERED, PurityScore.BAD, RetouchScore.GOOD, ItemScore.GOOD));
 
         // shop2 review (purity avg 1.0)
-        reviewRepository.save(new Review(member1, shop2, 4, "자연스럽게 잘 나와요", PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
-        reviewRepository.save(new Review(member2, shop2, 4, "가까워서 자주 가요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
-        reviewRepository.save(new Review(member3, shop2, 4, "매장이 깨끗해요", PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.UNSELECTED));
+        reviewRepository.save(new Review(member1, shop2, 4, "자연스럽게 잘 나와요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.GOOD, ItemScore.GOOD));
+        reviewRepository.save(new Review(member2, shop2, 4, "가까워서 자주 가요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.GOOD));
+        reviewRepository.save(new Review(member3, shop2, 4, "매장이 깨끗해요", ReviewStatus.REGISTERED, PurityScore.GOOD, RetouchScore.UNSELECTED, ItemScore.UNSELECTED));
 
         // when
         LocalDateTime now = LocalDateTime.now();

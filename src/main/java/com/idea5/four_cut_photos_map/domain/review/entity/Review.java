@@ -5,6 +5,7 @@ import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import lombok.*;
@@ -32,6 +33,9 @@ public class Review extends BaseEntity {
     private int starRating;
 
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    private ReviewStatus status;
 
     @Enumerated(EnumType.STRING)
     private PurityScore purity;
