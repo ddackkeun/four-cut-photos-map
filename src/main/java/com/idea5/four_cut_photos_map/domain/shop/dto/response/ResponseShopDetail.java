@@ -20,13 +20,13 @@ import java.util.List;
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ResponseShopDetail {
-    private long id;
+    private Long id;
     private String placeName;
     private String distance;
-    private double starRatingAvg;
-    private int reviewCnt;
-    private int favoriteCnt;
-    private boolean isFavorite;
+    private Double starRatingAvg;
+    private Integer reviewCnt;
+    private Integer favoriteCnt;
+    private Boolean isFavorite;
     private List<String> shopTitles;
     private String latitude;
     private String longitude;

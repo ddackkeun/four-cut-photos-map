@@ -63,7 +63,7 @@ public class ShopController {
         if (memberContext != null) {
             resultShops.forEach(resultShop -> {
                         Favorite favorite = favoriteService.findByShopIdAndMemberId(resultShop.getId(), memberContext.getId());
-                        resultShop.setFavorite(favorite != null);
+                        resultShop.setIsFavorite(favorite != null);
                     }
             );
         }
@@ -102,7 +102,7 @@ public class ShopController {
         resultShops.forEach(responseShopBrand -> {
             if (memberContext != null) {
                 Favorite favorite = favoriteService.findByShopIdAndMemberId(responseShopBrand.getId(), memberContext.getId());
-                responseShopBrand.setFavorite(favorite != null);
+                responseShopBrand.setIsFavorite(favorite != null);
             }
 
             if (shopTitleLogService.existShopTitles(responseShopBrand.getId())) {
@@ -139,7 +139,7 @@ public class ShopController {
 
         if (memberContext != null) {
             Favorite favorite = favoriteService.findByShopIdAndMemberId(shopDetailDto.getId(), memberContext.getId());
-            shopDetailDto.setFavorite(favorite != null);
+            shopDetailDto.setIsFavorite(favorite != null);
         }
 
         List<String> shopTitles = shopTitleLogService.getShopTitleNames(id);

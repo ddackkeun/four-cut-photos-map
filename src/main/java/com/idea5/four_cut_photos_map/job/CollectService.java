@@ -39,12 +39,12 @@ public class CollectService {
             // 1. 회원가입
             return true;
         } else if(memberTitle.getId() == MemberTitleType.FIRST_REVIEW.getCode()) {
-            if(reviewRepository.countByWriter(member) >= 1) {
+            if(reviewRepository.countByMemberId(member.getId()) >= 1) {
                 // 2. 첫번째 리뷰
                 return true;
             }
         } else if(memberTitle.getId() == MemberTitleType.MANY_REVIEW.getCode()) {
-            if(reviewRepository.countByWriter(member) >= 3) {
+            if(reviewRepository.countByMemberId(member.getId()) >= 3) {
                 // 3. 리뷰 5개 이상
                 return true;
             }

@@ -40,15 +40,16 @@ public enum ErrorCode {
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "429", "일일 카카오 API 호출 한도가 초과되었습니다. 관리자에게 문의 바랍니다."),
 
     // Request Parameter, Body 관련 오류(0번대)
-    INVALID_JSON(HttpStatus.BAD_REQUEST, "001", "Request Body JSON 형식이 잘못되었습니다."),
-    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "002", "파라미터 형식이 잘못되었습니다."),
-    MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "003", "필수 파라미터가 누락되었습니다"),
+    INVALID_JSON(HttpStatus.BAD_REQUEST, "0001", "Request Body JSON 형식이 잘못되었습니다."),
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "0002", "파라미터 형식이 잘못되었습니다."),
+    MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "0003", "필수 파라미터가 누락되었습니다"),
+    NO_REQUEST_DATA(HttpStatus.BAD_REQUEST, "0004", "요청데이터가 존재하지 않습니다."),
 
     // 파일 업로드 오류
-    NOT_IMAGE_FILE(HttpStatus.BAD_REQUEST, "004", "이미지 파일(png, jpeg, gif, webp)이 아닙니다."),
-    FILE_SIZE_EXCEED(HttpStatus.BAD_REQUEST, "005", "업로드 가능한 파일 용량을 초과했습니다."),
-    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "006", "이미지 업로드에 실패했습니다."),
-    NO_FILES_PROVIDED(HttpStatus.BAD_REQUEST, "007", "요청에 제공된 파일이 없습니다.");
+    NOT_IMAGE_FILE(HttpStatus.BAD_REQUEST, "1001", "이미지 파일(png, jpeg, gif, webp)이 아닙니다."),
+    FILE_SIZE_EXCEED(HttpStatus.BAD_REQUEST, "1002", "업로드 가능한 파일 용량을 초과했습니다."),
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "1003", "이미지 업로드에 실패했습니다."),
+    NO_FILES_PROVIDED(HttpStatus.BAD_REQUEST, "1004", "요청에 제공된 파일이 없습니다.");
 
     private HttpStatus httpStatus;
     private String errorCode;

@@ -43,7 +43,7 @@ public class ReviewReadServiceImpl implements ReviewReadService {
 
     @Override
     public List<MemberReviewResponse> getAllReviewsForMember(Long memberId) {
-        List<Review> reviews = reviewRepository.findAllByWriterIdOrderByCreateDateDesc(memberId);
+        List<Review> reviews = reviewRepository.findAllByMemberIdOrderByCreateDateDesc(memberId);
 
         return reviews.stream()
                 .map(review -> {
@@ -90,12 +90,12 @@ public class ReviewReadServiceImpl implements ReviewReadService {
     private List<ShopReviewResponse> createShopReviewResponse(List<Review> reviews) {
         return reviews.stream()
                 .map(review -> {
-                    MemberTitleLog memberTitleLog = memberTitleLogRepository.findByMemberAndIsMainTrue(review.getWriter()).orElse(null);
+                    MemberTitleLog memberTitleLog = memberTitleLogRepository.findByMemberAndIsMainTrue(review.getMember()).orElse(null);
                     String mainMemberTitleName = memberTitleLog == null ? "" : memberTitleLog.getMemberTitle().getName();
 
                     return ShopReviewResponse.builder()
                             .reviewInfo(reviewMapper.toResponse(review))
-                            .memberInfo(memberMapper.toResponse(review.getWriter(), mainMemberTitleName))
+                            .memberInfo(memberMapper.toResponse(review.getMember(), mainMemberTitleName))
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -13,7 +13,7 @@ import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
-import com.idea5.four_cut_photos_map.domain.review.service.ReviewWriteServiceImpl;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewRequestService;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
@@ -38,7 +38,7 @@ public class MemberService {
     private final MemberTitleService memberTitleService;
     private final FavoriteService favoriteService;
     private final JwtService jwtService;
-    private final ReviewWriteServiceImpl requestReviewServiceImpl;
+    private final ReviewRequestService reviewRequestService;
 
     // 서비스 로그인
     @Transactional
@@ -132,7 +132,7 @@ public class MemberService {
         // 2. Member 삭제하기 전 Member 를 참조하고 있는 엔티티(MemberTitleLog, Favorite, Review) 먼저 삭제하기
         memberTitleService.deleteByMemberId(id);
         favoriteService.deleteByMemberId(id);
-        requestReviewServiceImpl.deleteByWriterId(id);
+        reviewRequestService.deleteAllReviewsFromMember(id);
         // 3. DB 에서 회원 삭제
         memberRepository.deleteById(id);
         return new MemberWithdrawlResp(id);

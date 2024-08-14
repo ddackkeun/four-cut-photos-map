@@ -60,17 +60,17 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("단일 리뷰 검색")
     class GetReview {
-        private Member writer;
+        private Member member;
         private Brand brand;
         private Shop shop;
         private Review review;
 
         @BeforeEach
         void setUp() {
-            writer = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
+            member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
             brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
             shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop).starRating(5).content("리뷰 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
+            review = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(5).content("리뷰 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
         }
 
         @Nested
@@ -121,8 +121,8 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("회원 전체 리뷰 조회")
     class GetAllReviewsForMember {
-        private Member writer1;
-        private Member writer2;
+        private Member member1;
+        private Member member2;
         private Brand brand;
 
         private Shop shop;
@@ -132,13 +132,13 @@ public class ReviewReadServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            writer1 = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            writer2 = Member.builder().id(2L).kakaoId(2000L).nickname("user2").build();
+            member1 = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
+            member2 = Member.builder().id(2L).kakaoId(2000L).nickname("user2").build();
             brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
             shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer1).shop(shop).starRating(5).content("user1 작성한 리뷰 내용-1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
-            review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer1).shop(shop).starRating(4).content("user1 작성한 리뷰 내용-2").purity(PurityScore.UNSELECTED).retouch(RetouchScore.UNSELECTED).item(ItemScore.UNSELECTED).build();
-            review3 = Review.builder().id(3L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer2).shop(shop).starRating(3).content("user2 작성한 리뷰 내용-1").purity(PurityScore.BAD).retouch(RetouchScore.BAD).item(ItemScore.BAD).build();
+            review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member1).shop(shop).starRating(5).content("user1 작성한 리뷰 내용-1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
+            review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member1).shop(shop).starRating(4).content("user1 작성한 리뷰 내용-2").purity(PurityScore.UNSELECTED).retouch(RetouchScore.UNSELECTED).item(ItemScore.UNSELECTED).build();
+            review3 = Review.builder().id(3L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member2).shop(shop).starRating(3).content("user2 작성한 리뷰 내용-1").purity(PurityScore.BAD).retouch(RetouchScore.BAD).item(ItemScore.BAD).build();
         }
 
         @Nested
@@ -157,7 +157,7 @@ public class ReviewReadServiceImplTest {
                 ShopResponse shopResponse = ShopResponse.builder().id(shop.getId()).brand(brand.getBrandName()).placeName(shop.getPlaceName()).build();
 
                 // when
-                when(reviewRepository.findAllByWriterIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
+                when(reviewRepository.findAllByMemberIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
                 when(reviewMapper.toResponse(review1)).thenReturn(reviewResponse1);
                 when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
                 when(shopMapper.toResponse(shop, brand)).thenReturn(shopResponse);
@@ -190,7 +190,7 @@ public class ReviewReadServiceImplTest {
                 ShopResponse shopResponse = ShopResponse.builder().id(shop.getId()).brand(brand.getBrandName()).placeName(shop.getPlaceName()).build();
 
                 // when
-                when(reviewRepository.findAllByWriterIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
+                when(reviewRepository.findAllByMemberIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
                 when(reviewMapper.toResponse(review3)).thenReturn(reviewResponse);
                 when(shopMapper.toResponse(shop, brand)).thenReturn(shopResponse);
 
@@ -214,7 +214,7 @@ public class ReviewReadServiceImplTest {
                 List<Review> reviews = new ArrayList<>();
 
                 // when
-                when(reviewRepository.findAllByWriterIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
+                when(reviewRepository.findAllByMemberIdOrderByCreateDateDesc(memberId)).thenReturn(reviews);
 
                 List<MemberReviewResponse> memberReviews = reviewReadServiceImpl.getAllReviewsForMember(memberId);
 
@@ -233,7 +233,7 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("지점 전체 리뷰 조회")
     class GetAllReviewsForShop {
-        private Member writer;
+        private Member member;
         private Brand brand1;
         private Brand brand2;
         private Brand brand3;
@@ -246,16 +246,16 @@ public class ReviewReadServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            writer = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
+            member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
             brand1 = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
             brand2 = Brand.builder().id(2L).brandName("하루필름").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_2.jpg").build();
             brand3 = Brand.builder().id(3L).brandName("포토이즘").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_3.jpg").build();
             shop1 = Shop.builder().id(1L).brand(brand1).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
             shop2 = Shop.builder().id(2L).brand(brand2).placeName("하루필름 연트럴파크점").address("서울 마포구 양화로23길 30, 1층 (동교동)").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
             shop3 = Shop.builder().id(3L).brand(brand3).placeName("포토이즘박스 광운대점").address("서울 노원구 석계로 95 성북빌딩").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop1).starRating(5).content("shop1 작성한 리뷰 내용-1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
-            review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop1).starRating(4).content("shop1 작성한 리뷰 내용-2").purity(PurityScore.UNSELECTED).retouch(RetouchScore.UNSELECTED).item(ItemScore.UNSELECTED).build();
-            review3 = Review.builder().id(3L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop2).starRating(3).content("shop2 작성한 리뷰 내용-1").purity(PurityScore.BAD).retouch(RetouchScore.BAD).item(ItemScore.BAD).build();
+            review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(5).content("shop1 작성한 리뷰 내용-1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
+            review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(4).content("shop1 작성한 리뷰 내용-2").purity(PurityScore.UNSELECTED).retouch(RetouchScore.UNSELECTED).item(ItemScore.UNSELECTED).build();
+            review3 = Review.builder().id(3L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop2).starRating(3).content("shop2 작성한 리뷰 내용-1").purity(PurityScore.BAD).retouch(RetouchScore.BAD).item(ItemScore.BAD).build();
         }
 
         @Nested
@@ -270,15 +270,15 @@ public class ReviewReadServiceImplTest {
                 String mainMemberTitleName = "";
                 ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
                 ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(mainMemberTitleName).build();
+                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainMemberTitle(mainMemberTitleName).build();
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop1));
                 when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(writer)).thenReturn(Optional.empty());
+                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
                 when(reviewMapper.toResponse(review1)).thenReturn(reviewResponse1);
                 when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
-                when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
+                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
 
                 List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
@@ -287,14 +287,14 @@ public class ReviewReadServiceImplTest {
 
                 assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
                 assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
-                assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
-                assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(0).getMemberInfo().getId(), member.getId());
+                assertEquals(result.get(0).getMemberInfo().getNickname(), member.getNickname());
                 assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
 
                 assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
                 assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
-                assertEquals(result.get(1).getMemberInfo().getId(), writer.getId());
-                assertEquals(result.get(1).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(1).getMemberInfo().getId(), member.getId());
+                assertEquals(result.get(1).getMemberInfo().getNickname(), member.getNickname());
                 assertEquals(result.get(1).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
             }
 
@@ -305,18 +305,18 @@ public class ReviewReadServiceImplTest {
                 Long shopId = 1L;
                 List<Review> reviews = Arrays.asList(review1, review2);
                 MemberTitle memberTitle = MemberTitle.builder().name("칭호명").standard("획득방법").content("설명").colorImageUrl("컬러 이미지").bwImageUrl("흑백 이미지").build();
-                MemberTitleLog memberTitleLog = MemberTitleLog.builder().member(writer).memberTitle(memberTitle).isMain(true).build();
+                MemberTitleLog memberTitleLog = MemberTitleLog.builder().member(member).memberTitle(memberTitle).isMain(true).build();
                 ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
                 ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(memberTitle.getName()).build();
+                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainMemberTitle(memberTitle.getName()).build();
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop1));
                 when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(writer)).thenReturn(Optional.of(memberTitleLog));
+                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.of(memberTitleLog));
                 when(reviewMapper.toResponse(review1)).thenReturn(reviewResponse1);
                 when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
-                when(memberMapper.toResponse(writer, memberTitle.getName())).thenReturn(memberResponse);
+                when(memberMapper.toResponse(member, memberTitle.getName())).thenReturn(memberResponse);
 
                 List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
@@ -325,14 +325,14 @@ public class ReviewReadServiceImplTest {
 
                 assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
                 assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
-                assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
-                assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(0).getMemberInfo().getId(), member.getId());
+                assertEquals(result.get(0).getMemberInfo().getNickname(), member.getNickname());
                 assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), memberTitle.getName());
 
                 assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
                 assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
-                assertEquals(result.get(1).getMemberInfo().getId(), writer.getId());
-                assertEquals(result.get(1).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(1).getMemberInfo().getId(), member.getId());
+                assertEquals(result.get(1).getMemberInfo().getNickname(), member.getNickname());
                 assertEquals(result.get(1).getMemberInfo().getMainMemberTitle(), memberTitle.getName());
             }
 
@@ -344,14 +344,14 @@ public class ReviewReadServiceImplTest {
                 List<Review> reviews = Arrays.asList(review3);
                 String mainMemberTitleName = "";
                 ReviewResponse reviewResponse = ReviewResponse.builder().id(review3.getId()).createDate(review3.getCreateDate().toString()).modifyDate(review3.getModifyDate().toString()).starRating(review3.getStarRating()).content(review3.getContent()).purity(review3.getPurity()).retouch(review3.getRetouch()).item(review3.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(mainMemberTitleName).build();
+                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainMemberTitle(mainMemberTitleName).build();
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop2));
                 when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(writer)).thenReturn(Optional.empty());
+                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
                 when(reviewMapper.toResponse(review3)).thenReturn(reviewResponse);
-                when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
+                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
 
                 List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
@@ -360,8 +360,8 @@ public class ReviewReadServiceImplTest {
 
                 assertEquals(result.get(0).getReviewInfo().getId(), review3.getId());
                 assertEquals(result.get(0).getReviewInfo().getContent(), review3.getContent());
-                assertEquals(result.get(0).getMemberInfo().getId(), writer.getId());
-                assertEquals(result.get(0).getMemberInfo().getNickname(), writer.getNickname());
+                assertEquals(result.get(0).getMemberInfo().getId(), member.getId());
+                assertEquals(result.get(0).getMemberInfo().getNickname(), member.getNickname());
                 assertEquals(result.get(0).getMemberInfo().getMainMemberTitle(), mainMemberTitleName);
             }
 
@@ -407,13 +407,13 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("최신 리뷰 3건 가져오기")
     class GetRecentReviewsForShop {
-        private Member writer;
+        private Member member;
         private Brand brand;
         private Shop shop;
 
         @BeforeEach
         void setUp() {
-            writer = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
+            member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
             brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
             shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
         }
@@ -421,7 +421,7 @@ public class ReviewReadServiceImplTest {
         List<Review> createReviews(int n) {
             ArrayList<Review> reviews = new ArrayList<>();
             for(int i=1; i<=n; i++) {
-                Review review = Review.builder().id((long)i).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(writer).shop(shop).starRating(i).content("리뷰 " + i + "번 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
+                Review review = Review.builder().id((long)i).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(i).content("리뷰 " + i + "번 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
                 reviews.add(review);
             }
 
@@ -457,15 +457,15 @@ public class ReviewReadServiceImplTest {
                 String mainMemberTitleName = "";
                 List<Review> reviews = createReviews(reviewCnt);
                 List<ReviewResponse> reviewResponses = createReviewResponses(reviews);
-                MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(mainMemberTitleName).build();
+                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainMemberTitle(mainMemberTitleName).build();
 
                 // when
                 when(reviewRepository.findTop3ByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(writer)).thenReturn(Optional.empty());
+                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
                 when(reviewMapper.toResponse(reviews.get(0))).thenReturn(reviewResponses.get(0));
                 when(reviewMapper.toResponse(reviews.get(1))).thenReturn(reviewResponses.get(1));
                 when(reviewMapper.toResponse(reviews.get(2))).thenReturn(reviewResponses.get(2));
-                when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
+                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
 
                 List<ShopReviewResponse> result = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
 
@@ -484,14 +484,14 @@ public class ReviewReadServiceImplTest {
                 String mainMemberTitleName = "";
                 List<Review> reviews = createReviews(reviewCnt);
                 List<ReviewResponse> reviewResponses = createReviewResponses(reviews);
-                MemberResponse memberResponse = MemberResponse.builder().id(writer.getId()).nickname(writer.getNickname()).mainMemberTitle(mainMemberTitleName).build();
+                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainMemberTitle(mainMemberTitleName).build();
 
                 // when
                 when(reviewRepository.findTop3ByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(writer)).thenReturn(Optional.empty());
+                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
                 when(reviewMapper.toResponse(reviews.get(0))).thenReturn(reviewResponses.get(0));
                 when(reviewMapper.toResponse(reviews.get(1))).thenReturn(reviewResponses.get(1));
-                when(memberMapper.toResponse(writer, mainMemberTitleName)).thenReturn(memberResponse);
+                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
 
                 List<ShopReviewResponse> result = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
 
@@ -515,7 +515,7 @@ public class ReviewReadServiceImplTest {
 
             for(int i=1; i<=n; i++) {
                 int startRating = random.nextInt(5) + 1;
-                Review review = Review.builder().id((long)i).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).writer(member).shop(shop).starRating(startRating).content("리뷰 " + i + "번 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
+                Review review = Review.builder().id((long)i).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(startRating).content("리뷰 " + i + "번 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
                 reviews.add(review);
             }
             return reviews;

@@ -39,6 +39,7 @@ out/
 
 ###
 /src/main/resources/application-base-addi.yml
+/src/test/resources/application-base-addi.yml
 /docker-compose-prod.yml
 /photosmap
 /home

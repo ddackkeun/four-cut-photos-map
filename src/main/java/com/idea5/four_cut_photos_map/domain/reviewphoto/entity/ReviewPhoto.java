@@ -18,12 +18,14 @@ import javax.persistence.*;
 @SuperBuilder
 @ToString(callSuper = true)
 public class ReviewPhoto extends BaseEntity {
-
     @Column(nullable = false)
     private Long reviewId;
 
+    @Column(nullable = false)
+    private Long shopId;
+
     @Column(length = 150, nullable = false)
-    private String filename;
+    private String fileName;
 
     @Column(length = 200, nullable = false)
     private String filePath;
@@ -35,7 +37,11 @@ public class ReviewPhoto extends BaseEntity {
     private long fileSize;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(length = 50, nullable = false)
     private ReviewPhotoStatus status;
+
+    public void modifyStatus(ReviewPhotoStatus status) {
+        this.status = status;
+    }
 
 }

@@ -60,7 +60,7 @@ public class GetReviewUseCaseTest {
         Member member = Member.builder().build();
         Brand brand = Brand.builder().build();
         Shop shop = Shop.builder().brand(brand).build();
-        Review review = Review.builder().id(reviewId).writer(member).shop(shop).build();
+        Review review = Review.builder().id(reviewId).member(member).shop(shop).build();
         List<ReviewPhoto> reviewPhotos = Arrays.asList(new ReviewPhoto(), new ReviewPhoto());
 
         ReviewResponse reviewResponse = new ReviewResponse();
@@ -99,7 +99,7 @@ public class GetReviewUseCaseTest {
         Member member = Member.builder().build();
         Brand brand = Brand.builder().build();
         Shop shop = Shop.builder().brand(brand).build();
-        Review review = Review.builder().id(reviewId).writer(member).shop(shop).build();
+        Review review = Review.builder().id(reviewId).member(member).shop(shop).build();
         List<ReviewPhoto> reviewPhotos = List.of();
 
         ReviewResponse reviewResponse = new ReviewResponse();

@@ -17,7 +17,7 @@ public class ReviewPhotoResponse {
     private String createDate;
     private String modifyDate;
     private Long reviewId;
-    private String filename;
+    private String fileName;
     private String filePath;
     private String fileType;
     private long fileSize;

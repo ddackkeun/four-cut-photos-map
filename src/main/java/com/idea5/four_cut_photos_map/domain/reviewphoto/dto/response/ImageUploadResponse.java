@@ -1,11 +1,9 @@
-package com.idea5.four_cut_photos_map.domain.file.dto.response;
+package com.idea5.four_cut_photos_map.domain.reviewphoto.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.net.URL;
 
 /**
  * 이미지 업로드 응답
@@ -16,4 +14,8 @@ import java.net.URL;
 public class ImageUploadResponse {
     private String fileName;
     private String url;
+    private String type;
+    private Long size;
+    private Boolean success;
+    private String errorMessage;
 }

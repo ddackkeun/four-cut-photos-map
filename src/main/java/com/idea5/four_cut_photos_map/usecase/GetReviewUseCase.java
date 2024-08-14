@@ -32,7 +32,7 @@ public class GetReviewUseCase {
 
                     return ReviewDetailResponse.builder()
                             .reviewInfo(reviewMapper.toResponse(review, reviewPhotos))
-                            .memberInfo(memberMapper.toResponse(review.getWriter()))
+                            .memberInfo(memberMapper.toResponse(review.getMember()))
                             .shopInfo(shopMapper.toResponse(review.getShop(), review.getShop().getBrand()))
                             .build();
                 })

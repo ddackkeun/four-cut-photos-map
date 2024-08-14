@@ -23,10 +23,10 @@ public class ResponseShop {
     private String longitude;
     private String latitude;
     private String distance;
-    private double starRatingAvg;
-    private int reviewCnt;
-    private int favoriteCnt;
-    private boolean isFavorite;
+    private Double starRatingAvg;
+    private Integer reviewCnt;
+    private Integer favoriteCnt;
+    private Boolean isFavorite;
     private ResponseBrandDto brand;
 
     static public ResponseShop of(Shop dbShop, KakaoMapSearchDto apiShop, Brand brand){

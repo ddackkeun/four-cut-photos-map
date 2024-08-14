@@ -18,19 +18,20 @@ import java.util.List;
 @Component
 public class ReviewMapper {
     public Review toEntity(Review review, ReviewRequest request) {
-        Review newReview = toEntity(review.getWriter(), review.getShop(), request);
+        Review newReview = toEntity(review.getShop(), review.getMember(), request);
         newReview.setId(review.getId());
         newReview.setCreateDate(review.getCreateDate());
 
         return newReview;
     }
-    public Review toEntity(Member writer, Shop shop, ReviewRequest request) {
+
+    public Review toEntity(Shop shop, Member member, ReviewRequest request) {
         PurityScore purity = request.getPurity() == null ? PurityScore.UNSELECTED : PurityScore.valueOf(request.getPurity());
         RetouchScore retouch = request.getRetouch() == null ? RetouchScore.UNSELECTED : RetouchScore.valueOf(request.getRetouch());
         ItemScore item = request.getItem() == null ? ItemScore.UNSELECTED : ItemScore.valueOf(request.getItem());
 
         return Review.builder()
-                .writer(writer)
+                .member(member)
                 .shop(shop)
                 .starRating(request.getStarRating())
                 .content(request.getContent())
@@ -52,7 +53,7 @@ public class ReviewMapper {
                             .createDate(reviewPhoto.getCreateDate().toString())
                             .modifyDate(reviewPhoto.getModifyDate().toString())
                             .reviewId(reviewPhoto.getReviewId())
-                            .filename(reviewPhoto.getFilename())
+                            .fileName(reviewPhoto.getFileName())
                             .filePath(reviewPhoto.getFilePath())
                             .fileType(reviewPhoto.getFileType())
                             .fileSize(reviewPhoto.getFileSize())

@@ -151,8 +151,4 @@ public class Util {
         return str.replaceAll("\\s+", "");
     }
 
-    // s3 업로드를 위한 고유한 객체 키 생성
-    public static String generateS3ObjectKey(String dirName, String originalFileName) {
-        return dirName + "/" + UUID.randomUUID() + "_" + originalFileName;
-    }
 }

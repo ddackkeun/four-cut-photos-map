@@ -21,7 +21,7 @@ public class ResponseFavoriteShop {
     private String placeName;
     private String distance;
     private double starRatingAvg;
-    private int reviewCnt;
+    private Integer reviewCnt;
     private int favoriteCnt;
 
     public static ResponseFavoriteShop from(Shop shop, String distance) {

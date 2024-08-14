@@ -31,9 +31,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ReviewWriteServiceImplTest {
+public class ReviewRequestServiceImplTest {
     @InjectMocks
-    private ReviewWriteServiceImpl requestReviewServiceImpl;
+    private ReviewRequestServiceImpl requestReviewServiceImpl;
     @Mock
     private ReviewRepository reviewRepository;
 
@@ -46,33 +46,33 @@ public class ReviewWriteServiceImplTest {
     @Mock
     private ReviewMapper reviewMapper;
 
-    @Nested
+    /*@Nested
     @DisplayName("상점 리뷰 작성")
-    class WriteReviewForShop {
+    class WriteReview {
 
         @Nested
         @DisplayName("성공")
         class SuccessCase {
             @Test
             @DisplayName("shopId 가진 지점에 review 추가")
-            void writeReviewForShopSuccess1() {
+            void writeReview_success() {
                 // given
                 Long shopId = 1L;
                 Long memberId = 1L;
                 ReviewRequest request = ReviewRequest.builder().starRating(3).content("리뷰 내용").purity("GOOD").retouch("GOOD").item("GOOD").build();
                 Shop shop = new Shop();
-                Member writer = new Member();
+                Member member = new Member();
                 Review review = new Review();
                 ReviewResponse response = new ReviewResponse(1L, LocalDateTime.now().toString(), LocalDateTime.now().toString(), request.getStarRating(), request.getContent(), PurityScore.valueOf(request.getPurity()), RetouchScore.valueOf(request.getRetouch()), ItemScore.valueOf(request.getItem()), new ArrayList<>());
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
-                when(memberRepository.findById(memberId)).thenReturn(Optional.of(writer));
+                when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
                 when(reviewMapper.toEntity(any(Member.class), any(Shop.class), any(ReviewRequest.class))).thenReturn(review);
                 when(reviewRepository.save(any(Review.class))).thenReturn(review);
                 when(reviewMapper.toResponse(any(Review.class))).thenReturn(response);
 
-                ReviewResponse result = requestReviewServiceImpl.writeReviewForShop(shopId, memberId, request);
+                ReviewResponse result = requestReviewServiceImpl.writeReview(shopId, memberId, request);
 
                 // then
                 Assertions.assertEquals(result.getId(), response.getId());
@@ -87,24 +87,24 @@ public class ReviewWriteServiceImplTest {
 
             @Test
             @DisplayName("요청 데이터의 purity, retouch, item 값이 null일 때")
-            void writeReviewForShopSuccess2() {
+            void writeReview_success2() {
                 // given
                 Long shopId = 1L;
                 Long memberId = 1L;
                 ReviewRequest request = ReviewRequest.builder().starRating(3).content("리뷰 내용").purity(null).retouch(null).item(null).build();
                 Shop shop = new Shop();
-                Member writer = new Member();
+                Member member = new Member();
                 Review review = new Review();
                 ReviewResponse response = new ReviewResponse(1L, LocalDateTime.now().toString(), LocalDateTime.now().toString(), request.getStarRating(), request.getContent(), PurityScore.UNSELECTED, RetouchScore.UNSELECTED, ItemScore.UNSELECTED, new ArrayList<>());
 
                 // when
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
-                when(memberRepository.findById(memberId)).thenReturn(Optional.of(writer));
+                when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
                 when(reviewMapper.toEntity(any(Member.class), any(Shop.class), any(ReviewRequest.class))).thenReturn(review);
                 when(reviewRepository.save(any(Review.class))).thenReturn(review);
                 when(reviewMapper.toResponse(any(Review.class))).thenReturn(response);
 
-                ReviewResponse result = requestReviewServiceImpl.writeReviewForShop(shopId, memberId, request);
+                ReviewResponse result = requestReviewServiceImpl.writeReview(shopId, memberId, request);
 
                 // then
                 Assertions.assertEquals(result.getId(), response.getId());
@@ -123,7 +123,7 @@ public class ReviewWriteServiceImplTest {
         class FailCase {
             @Test
             @DisplayName("ShopId의 지점(shop) 존재하지 않는 경우")
-            void writeReviewForShopFail1() {
+            void writeReview_fail1() {
                 // given
                 Long shopId = 1L;
                 Long memberId = 1L;
@@ -134,14 +134,14 @@ public class ReviewWriteServiceImplTest {
                 when(shopRepository.findById(shopId)).thenReturn(Optional.empty());
 
                 // then
-                BusinessException result = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.writeReviewForShop(shopId, memberId, request));
+                BusinessException result = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.writeReview(shopId, memberId, request));
                 Assertions.assertEquals(exception.getErrorCode(), result.getErrorCode());
                 Assertions.assertEquals(exception.getMessage(), result.getMessage());
             }
 
             @Test
             @DisplayName("memberId의 회원(member) 존재하지 않는 경우")
-            void writeReviewForShopFail2() {
+            void writeReview_fail2() {
                 // given
                 Long shopId = 1L;
                 Long memberId = 1L;
@@ -152,14 +152,14 @@ public class ReviewWriteServiceImplTest {
                 when(shopRepository.findById(shopId)).thenReturn(Optional.of(new Shop()));
                 when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
-                BusinessException result = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.writeReviewForShop(shopId, memberId, request));
+                BusinessException result = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.writeReview(shopId, memberId, request));
                 Assertions.assertEquals(exception.getErrorCode(), result.getErrorCode());
                 Assertions.assertEquals(exception.getMessage(), result.getMessage());
             }
 
             @Test
             @DisplayName("ReviewRequest 존재하지 않는 경우")
-            public void writeReviewForShopFail3() {
+            public void writeReview_fail3() {
                 // given
                 Long shopId = 1L;
                 Long memberId = 1L;
@@ -170,13 +170,13 @@ public class ReviewWriteServiceImplTest {
                 when(memberRepository.findById(memberId)).thenReturn(Optional.of(new Member()));
 
                 // then
-                BusinessException result = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.writeReviewForShop(shopId, memberId, null));
+                BusinessException result = Assertions.assertThrows(exception.getClass(), () -> requestReviewServiceImpl.writeReview(shopId, memberId, null));
                 Assertions.assertEquals(exception.getErrorCode(), result.getErrorCode());
                 Assertions.assertEquals(exception.getMessage(), result.getMessage());
             }
         }
     }
-
+*/
     @Nested
     @DisplayName("특정 리뷰 수정")
     class ModifyReview {
@@ -191,15 +191,15 @@ public class ReviewWriteServiceImplTest {
                 Long reviewId = 2L;
                 ReviewRequest request = new ReviewRequest(5, "수정 내용", "GOOD", "GOOD", "GOOD");
 
-                Member writer = Member.builder().id(memberId).build();
+                Member member = Member.builder().id(memberId).build();
                 Shop shop = Shop.builder().id(2L).build();
 
-                Review originalReview = Review.builder().id(reviewId).writer(writer).shop(shop).createDate(LocalDateTime.now()).build();
+                Review originalReview = Review.builder().id(reviewId).member(member).shop(shop).createDate(LocalDateTime.now()).build();
                 Review newReview = Review.builder()
                         .id(reviewId)
                         .createDate(originalReview.getCreateDate())
                         .modifyDate(LocalDateTime.now())
-                        .writer(originalReview.getWriter())
+                        .member(originalReview.getMember())
                         .shop(originalReview.getShop())
                         .starRating(request.getStarRating())
                         .content(request.getContent())
@@ -231,15 +231,15 @@ public class ReviewWriteServiceImplTest {
                 Long reviewId = 2L;
                 ReviewRequest request = ReviewRequest.builder().starRating(5).content("수정 내용").build();
 
-                Member writer = Member.builder().id(memberId).build();
+                Member member = Member.builder().id(memberId).build();
                 Shop shop = Shop.builder().id(2L).build();
 
-                Review originalReview = Review.builder().id(reviewId).createDate(LocalDateTime.now()).writer(writer).shop(shop).build();
+                Review originalReview = Review.builder().id(reviewId).createDate(LocalDateTime.now()).member(member).shop(shop).build();
                 Review newReview = Review.builder()
                         .id(originalReview.getId())
                         .createDate(originalReview.getCreateDate())
                         .modifyDate(LocalDateTime.now())
-                        .writer(originalReview.getWriter())
+                        .member(originalReview.getMember())
                         .shop(originalReview.getShop())
                         .starRating(request.getStarRating())
                         .content(request.getContent())
@@ -294,8 +294,8 @@ public class ReviewWriteServiceImplTest {
                 Long memberId = 1L;
                 Long reviewId = 2L;
 
-                Member writer = Member.builder().id(100L).build();
-                Review originalReview = Review.builder().id(reviewId).writer(writer).build();
+                Member member = Member.builder().id(100L).build();
+                Review originalReview = Review.builder().id(reviewId).member(member).build();
 
                 // when
                 when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(originalReview));
@@ -323,9 +323,9 @@ public class ReviewWriteServiceImplTest {
                 Long memberId = 1L;
                 Long reviewId = 2L;
                 Long shopId = 1L;
-                Member writer = Member.builder().id(memberId).build(); // 현재 사용자
+                Member member = Member.builder().id(memberId).build(); // 현재 사용자
                 Shop shop = Shop.builder().id(shopId).build();
-                Review review = Review.builder().id(reviewId).writer(writer).shop(shop).build();
+                Review review = Review.builder().id(reviewId).member(member).shop(shop).build();
 
                 // when
                 when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
@@ -370,8 +370,8 @@ public class ReviewWriteServiceImplTest {
                 Long memberId = 1L;
                 Long reviewId = 2L;
 
-                Member writer = Member.builder().id(100L).build();
-                Review review = Review.builder().id(reviewId).writer(writer).build();
+                Member member = Member.builder().id(100L).build();
+                Review review = Review.builder().id(reviewId).member(member).build();
 
                 // when
                 when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));

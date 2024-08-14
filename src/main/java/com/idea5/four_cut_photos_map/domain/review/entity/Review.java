@@ -23,7 +23,7 @@ public class Review extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     @ToString.Exclude
-    private Member writer;
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_id")
@@ -46,6 +46,10 @@ public class Review extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ItemScore item;
 
+    public void changeStatus(ReviewStatus status) {
+        this.status = status;
+    }
+
     public Review update(ReviewRequest dto) {
         this.starRating = dto.getStarRating();
         this.content = dto.getContent();
@@ -55,4 +59,5 @@ public class Review extends BaseEntity {
 
         return this;
     }
+
 }
