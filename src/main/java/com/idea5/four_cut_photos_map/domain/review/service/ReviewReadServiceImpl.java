@@ -7,6 +7,7 @@ import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResp
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
@@ -37,8 +38,9 @@ public class ReviewReadServiceImpl implements ReviewReadService {
     private final ShopMapper shopMapper;
 
     @Override
-    public Optional<Review> getReview(Long reviewId) {
-        return reviewRepository.findById(reviewId);
+    public Review getRegisteredReviewWithThrow(Long reviewId) {
+        return reviewRepository.findByIdAndStatus(reviewId, ReviewStatus.REGISTERED)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
     @Override

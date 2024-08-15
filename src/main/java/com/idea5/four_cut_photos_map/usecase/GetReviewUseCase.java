@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +27,10 @@ public class GetReviewUseCase {
 
     @Transactional(readOnly = true)
     public ReviewDetailResponse execute(Long reviewId) {
-        return reviewReadService.getReview(reviewId)
+        return Optional.ofNullable(reviewId)
+                .map(reviewReadService::getRegisteredReviewWithThrow)
                 .map(review -> {
-                    List<ReviewPhoto> reviewPhotos = reviewPhotoReadService.getReviewPhotos(reviewId);
+                    List<ReviewPhoto> reviewPhotos = reviewPhotoReadService.getRegisteredReviewPhotos(review.getId());
 
                     return ReviewDetailResponse.builder()
                             .reviewInfo(reviewMapper.toResponse(review, reviewPhotos))
@@ -36,6 +38,6 @@ public class GetReviewUseCase {
                             .shopInfo(shopMapper.toResponse(review.getShop(), review.getShop().getBrand()))
                             .build();
                 })
-                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NO_REQUEST_DATA));
     }
 }

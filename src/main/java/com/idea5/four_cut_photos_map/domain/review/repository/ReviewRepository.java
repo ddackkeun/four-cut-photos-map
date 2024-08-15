@@ -1,6 +1,7 @@
 package com.idea5.four_cut_photos_map.domain.review.repository;
 
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
+    Optional<Review> findByIdAndStatus(Long id, ReviewStatus status);
+
     List<Review> findAllByMemberId(Long memberId);
 
     List<Review> findAllByShopId(Long shopId);

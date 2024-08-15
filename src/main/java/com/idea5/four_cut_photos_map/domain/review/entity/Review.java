@@ -21,29 +21,35 @@ import javax.persistence.*;
 @ToString(callSuper = true)
 public class Review extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     @ToString.Exclude
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shop_id")
+    @JoinColumn(name = "shop_id", nullable = false)
     @ToString.Exclude
     private Shop shop;
 
+    @Column(nullable = false)
     private int starRating;
 
+    @Column(length = 500, nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
     private ReviewStatus status;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private PurityScore purity;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private RetouchScore retouch;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private ItemScore item;
 
     public void changeStatus(ReviewStatus status) {

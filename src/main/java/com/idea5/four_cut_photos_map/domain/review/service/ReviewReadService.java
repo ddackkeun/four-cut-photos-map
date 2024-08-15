@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReviewReadService {
-    Optional<Review> getReview(Long reviewId);
+    Review getRegisteredReviewWithThrow(Long reviewId);
     List<MemberReviewResponse> getAllReviewsForMember(Long memberId);
     List<ShopReviewResponse> getAllReviewsForShop(Long shopId);
     List<ShopReviewResponse> getRecentReviewsForShop(Long shopId);

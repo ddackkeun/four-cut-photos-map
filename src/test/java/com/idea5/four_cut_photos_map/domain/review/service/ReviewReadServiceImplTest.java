@@ -15,6 +15,7 @@ import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopResponse;
@@ -59,7 +60,7 @@ public class ReviewReadServiceImplTest {
 
     @Nested
     @DisplayName("단일 리뷰 검색")
-    class GetReview {
+    class GetRegisteredReviewWithThrow {
         private Member member;
         private Brand brand;
         private Shop shop;
@@ -68,9 +69,9 @@ public class ReviewReadServiceImplTest {
         @BeforeEach
         void setUp() {
             member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
-            shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(5).content("리뷰 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
+            brand = Brand.builder().id(1L).brandName("인생네컷").build();
+            shop = Shop.builder().id(1L).brand(brand).placeName("장소이름").address("상세주소").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
+            review = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(5).content("리뷰 내용").status(ReviewStatus.REGISTERED).purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
         }
 
         @Nested
@@ -78,36 +79,40 @@ public class ReviewReadServiceImplTest {
         class SuccessCase {
             @Test
             @DisplayName("해당 id를 가진 리뷰 존재")
-            void getReview_found() {
+            void getRegisteredReviewWithThrow_WhenFoundRegisteredMember_ReturnReview() {
                 //given
                 Long reviewId = 1L;
+                ReviewStatus status = ReviewStatus.REGISTERED;
 
-                when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+                when(reviewRepository.findByIdAndStatus(reviewId, status)).thenReturn(Optional.of(review));
 
                 // when
-                Optional<Review> response = reviewReadServiceImpl.getReview(reviewId);
+                Review response = reviewReadServiceImpl.getRegisteredReviewWithThrow(reviewId);
 
                 //then
-                assertTrue(response.isPresent());
-                assertEquals(reviewId, response.get().getId());
+                assertNotNull(response);
+                assertEquals(reviewId, response.getId());
+                assertEquals(shop, response.getShop());
+                assertEquals(member, response.getMember());
+                assertEquals(status, response.getStatus());
 
-                verify(reviewRepository, times(1)).findById(reviewId);
+                verify(reviewRepository, times(1)).findByIdAndStatus(reviewId, status);
             }
 
             @Test
             @DisplayName("해당 id의 리뷰가 존재하지 않음")
-            void getReview_notFound() {
+            void getRegisteredReviewWithThrow_WhenNotFoundReview_ThrowsException() {
                 // given
                 Long reviewId = 1L;
+                ReviewStatus status = ReviewStatus.REGISTERED;
 
-                when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+                when(reviewRepository.findByIdAndStatus(reviewId, status)).thenReturn(Optional.empty());
 
-                // when
-                Optional<Review> response = reviewReadServiceImpl.getReview(reviewId);
+                // when / then
+                BusinessException exception = assertThrows(BusinessException.class, () -> reviewReadServiceImpl.getRegisteredReviewWithThrow(reviewId));
 
-                // then
-                assertFalse(response.isPresent());
-                verify(reviewRepository, times(1)).findById(reviewId);
+                assertEquals(ErrorCode.REVIEW_NOT_FOUND, exception.getErrorCode());
+                verify(reviewRepository, times(1)).findByIdAndStatus(reviewId, status);
             }
         }
 
