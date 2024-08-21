@@ -1,7 +1,6 @@
 package com.idea5.four_cut_photos_map.global.common;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 

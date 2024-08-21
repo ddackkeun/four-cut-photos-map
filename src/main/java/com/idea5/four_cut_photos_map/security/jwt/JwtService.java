@@ -1,15 +1,14 @@
 package com.idea5.four_cut_photos_map.security.jwt;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
+import com.idea5.four_cut_photos_map.domain.token.model.TokenDTO;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
-import com.idea5.four_cut_photos_map.security.jwt.dto.response.AccessToken;
-import com.idea5.four_cut_photos_map.security.jwt.dto.response.JwtToken;
+import com.idea5.four_cut_photos_map.security.jwt.dto.response.TokenResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,29 +26,28 @@ public class JwtService {
     private final JwtProvider jwtProvider;
     private final RedisDao redisDao;
 
-    @Value("${jwt.rtk.expiration}")
-    private long refreshTokenValidationSecond;    // accessToken 유효기간(1달)
+    public TokenResponse generateTokens(Member member) {
+        TokenDTO accessToken = jwtProvider.generateAccessToken(member.getId(), member.getAuthorities());
+        TokenDTO refreshToken = jwtProvider.generateRefreshToken(member.getId(), member.getAuthorities());
 
-    // accessToken, refreshToken 발급
-    @Transactional
-    public JwtToken generateTokens(Member member) {
-        String accessToken = jwtProvider.generateAccessToken(member.getId(), member.getAuthorities());
-        String refreshToken = jwtProvider.generateRefreshToken(member.getId(), member.getAuthorities());
-        // refreshToken redis 에 저장
+        long currentTimeMillis = System.currentTimeMillis();
+        long expiredTimeMillis = refreshToken.getExpiredAt().getTime();
+
         redisDao.setValues(
                 RedisDao.getRtkKey(member.getId()),
-                refreshToken,
-                Duration.ofSeconds(refreshTokenValidationSecond));
+                refreshToken.getToken(),
+                Duration.ofMillis(expiredTimeMillis - currentTimeMillis)
+        );
 
-        return JwtToken.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+        return TokenResponse.builder()
+                .accessToken(accessToken.getToken())
+                .refreshToken(refreshToken.getToken())
                 .build();
     }
 
     // TODO: 리팩토링
     // accessToken 재발급
-    public AccessToken reissueAccessToken(String refreshToken) {
+    public TokenResponse reissueAccessToken(String refreshToken) {
         // 1. refreshToken 으로부터 memberId 조회
         Long memberId;
         try {
@@ -67,11 +65,11 @@ public class JwtService {
         Member member = Member.builder()
                 .id(memberId)
                 .build();
+
         // TODO: 기존 refreshToken 을 삭제하고 refreshToken 도 함께 재발급할지 고민중
-        // 5. accessToken 재발급
-        String newAccessToken = jwtProvider.generateAccessToken(memberId, member.getAuthorities());
-        return AccessToken.builder()
-                .accessToken(newAccessToken)
+        TokenDTO tokenDTO = jwtProvider.generateAccessToken(memberId, member.getAuthorities());
+        return TokenResponse.builder()
+                .accessToken(tokenDTO.getToken())
                 .build();
     }
 

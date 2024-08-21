@@ -1,7 +1,6 @@
 package com.idea5.four_cut_photos_map.domain.member.service;
 
 import com.idea5.four_cut_photos_map.domain.auth.dto.param.KakaoUserInfoParam;
-import com.idea5.four_cut_photos_map.domain.auth.dto.param.LoginMemberParam;
 import com.idea5.four_cut_photos_map.domain.auth.dto.response.KakaoTokenResp;
 import com.idea5.four_cut_photos_map.domain.favorite.service.FavoriteService;
 import com.idea5.four_cut_photos_map.domain.member.dto.request.MemberUpdateReq;
@@ -10,6 +9,8 @@ import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberTitleInfoR
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberWithdrawlResp;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResp;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
+import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
+import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
@@ -18,8 +19,6 @@ import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
 import com.idea5.four_cut_photos_map.global.util.Util;
-import com.idea5.four_cut_photos_map.security.jwt.JwtService;
-import com.idea5.four_cut_photos_map.security.jwt.dto.response.JwtToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -37,51 +37,53 @@ public class MemberService {
     private final RedisDao redisDao;
     private final MemberTitleService memberTitleService;
     private final FavoriteService favoriteService;
-    private final JwtService jwtService;
     private final ReviewRequestService reviewRequestService;
+    private final MemberMapper memberMapper;
 
-    // 서비스 로그인
     @Transactional
-    public LoginMemberParam login(KakaoUserInfoParam kakaoUserInfoParam, KakaoTokenResp kakaoTokenResp) {
-        // 1. Unique 한 값인 kakaoId 로 조회
-        Member member = memberRepository.findByKakaoId(kakaoUserInfoParam.getId()).orElse(null);
-        boolean isJoin = false;
-        if(member == null) {
-            // 2. 신규 사용자는 회원가입
-            member = join(kakaoUserInfoParam, kakaoTokenResp);
-            isJoin = true;
-        } else {
-            // 3. 기존 가입자는 DB 의 kakaoRefreshToken 갱신
-            member.updateKakaoRefreshToken(kakaoTokenResp.getRefreshToken());
-        }
-        // 4. redis 에 kakaoAccessToken 저장
-        redisDao.setValues(
-                RedisDao.getKakaoAtkKey(member.getId()),
-                kakaoTokenResp.getAccessToken(),
-                Duration.ofSeconds(kakaoTokenResp.getExpiresIn()));
-        // 5. jwt accessToken, refreshToken 발급
-        JwtToken jwtToken = jwtService.generateTokens(member);
-        return new LoginMemberParam(member, jwtToken, isJoin);
+    public Member login(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken) {
+        return memberRepository.findByKakaoId(kakaoUserInfo.getId())
+                .map(existingMember -> updateMember(existingMember, kakaoToken))
+                .orElseGet(() -> registerMember(kakaoUserInfo, kakaoToken));
     }
 
-    // 회원가입
-    public Member join(KakaoUserInfoParam kakaoUserInfoParam, KakaoTokenResp kakaoTokenResp) {
-        // 유니크한 닉네임 생성
-        String nickname = generateUniqueNickname(kakaoUserInfoParam.getNickname());
-        Member member = KakaoUserInfoParam.toEntity(
-                kakaoUserInfoParam.getId(),
-                nickname,
-                kakaoTokenResp.getRefreshToken());
-        return memberRepository.save(member);
+    private Member updateMember(Member member, KakaoTokenResp kakaoToken) {
+        member.updateKakaoRefreshToken(kakaoToken.getRefreshToken());
+        member = memberRepository.save(member);
+
+        redisDao.setValues(
+                RedisDao.getKakaoAtkKey(member.getId()),
+                kakaoToken.getAccessToken(),
+                Duration.ofSeconds(kakaoToken.getExpiresIn())
+        );
+
+        return member;
+    }
+
+    private Member registerMember(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken) {
+        String nickname = generateUniqueNickname(kakaoUserInfo.getNickname());
+        Member newMember = memberMapper.toEntity(kakaoUserInfo.getId(), nickname, kakaoToken.getRefreshToken());
+        newMember.changeStatus(MemberStatus.REGISTERED);
+
+        newMember = memberRepository.save(newMember);
+
+        redisDao.setValues(
+                RedisDao.getKakaoAtkKey(newMember.getId()),
+                kakaoToken.getAccessToken(),
+                Duration.ofSeconds(kakaoToken.getExpiresIn())
+        );
+
+        return newMember;
     }
 
     // 유니크한 닉네임 생성
     public String generateUniqueNickname(String nickname) {
-        while(true) {
-            String newNickname = nickname + Util.generateRandomNumber(4);
-            if(memberRepository.existsByNickname(newNickname)) continue;
-            return newNickname;
-        }
+        String newNickname;
+        do {
+            newNickname = nickname + Util.generateRandomNumber(4);
+        } while (memberRepository.existsByNickname(newNickname));
+
+        return newNickname;
     }
 
     public Member findById(Long id) {
@@ -172,4 +174,5 @@ public class MemberService {
         boolean status = (memberRepository.existsByNickname(nickname) == false);
         return new NicknameCheckResp(nickname, status);
     }
+
 }

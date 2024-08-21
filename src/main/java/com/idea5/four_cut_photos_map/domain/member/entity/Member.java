@@ -12,6 +12,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,14 +25,21 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Member extends BaseEntity {
-    @Column(unique = true)
-    private Long kakaoId;       // 카카오 회원번호
+    @Column(nullable = false, unique = true)
+    private Long kakaoId;
 
-    @Column(unique = true)
+    @Column(length = 50, nullable = false, unique = true)
     private String nickname;    // 닉네임(default kakao nickname + 4자리 난수)
 
-    // TODO: 임시 추가
-    private String kakaoRefreshToken;   // 카카오 리프레쉬 토큰
+    @Column(length = 300, nullable = false)
+    private String kakaoRefreshToken;
+
+    @Column(length = 50)
+    private String mainTitleName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
+    private MemberStatus status;
 
     // TODO: 이후 활용
     // 현재 회원이 가지고 있는 권한들을 List<GrantedAuthority> 형태로 리턴
@@ -48,5 +57,13 @@ public class Member extends BaseEntity {
 
     public void updateKakaoRefreshToken(String kakaoRefreshToken) {
         this.kakaoRefreshToken = kakaoRefreshToken;
+    }
+
+    public void changeStatus(MemberStatus status) {
+        this.status = status;
+    }
+
+    public void changeMainTitleName(String memberTitleName) {
+        this.mainTitleName = memberTitleName;
     }
 }

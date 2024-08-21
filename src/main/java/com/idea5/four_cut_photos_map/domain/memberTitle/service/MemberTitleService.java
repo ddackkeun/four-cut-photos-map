@@ -5,6 +5,7 @@ import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitle
 import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitlesResp;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
+import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleType;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,9 +30,7 @@ public class MemberTitleService {
     private final MemberTitleLogRepository memberTitleLogRepository;
 
     public MemberTitle findById(Long id) {
-        return memberTitleRepository.findById(id).orElseThrow(() -> {
-            throw new BusinessException(ErrorCode.MEMBER_TITLE_NOT_FOUND);
-        });
+        return memberTitleRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_TITLE_NOT_FOUND));
     }
 
     // 회원 칭호 정보 조회
@@ -141,5 +141,29 @@ public class MemberTitleService {
     public String getMainMemberTitle(Member member) {
         MemberTitleLog memberTitleLog = memberTitleLogRepository.findByMemberAndIsMainTrue(member).orElse(null);
         return memberTitleLog == null ? "" : memberTitleLog.getMemberTitleName();
+    }
+
+    @Transactional
+    public void issueNewbieTitle(Member member) {
+        MemberTitle newbieTitle = findById(MemberTitleType.NEWBIE.getCode());
+        MemberTitleLog memberTitleLog = MemberTitleLog.builder()
+                .member(member)
+                .memberTitle(newbieTitle)
+                .isMain(true)
+                .build();
+        memberTitleLogRepository.save(memberTitleLog);
+
+        member.changeMainTitleName(newbieTitle.getName());
+    }
+
+    @Transactional
+    public void issueMemberTitle(Member member, Long memberTitleId) {
+        MemberTitle memberTitle = findById(memberTitleId);
+        MemberTitleLog memberTitleLog = MemberTitleLog.builder()
+                .member(member)
+                .memberTitle(memberTitle)
+                .build();
+
+        memberTitleLogRepository.save(memberTitleLog);
     }
 }

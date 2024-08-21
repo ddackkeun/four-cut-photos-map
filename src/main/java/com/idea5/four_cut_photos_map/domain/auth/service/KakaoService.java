@@ -43,10 +43,7 @@ public class KakaoService {
     private String prodRedirectURI;
 
     // 요청 origin 에 따른 redirect-uri 조회
-    public String getRedirectURI(HttpServletRequest request) {
-        String origin = request.getHeader("Origin");
-        log.info("origin: {}", origin);
-
+    public String getRedirectURI(String origin) {
         return Optional.ofNullable(origin)
                 .map(o -> {
                     if(!Objects.equals(o, prodRedirectURI)) {

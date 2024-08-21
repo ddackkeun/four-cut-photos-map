@@ -2,7 +2,7 @@ package com.idea5.four_cut_photos_map.domain.auth.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.idea5.four_cut_photos_map.security.jwt.dto.response.JwtToken;
+import com.idea5.four_cut_photos_map.security.jwt.dto.response.TokenResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,5 +15,5 @@ import lombok.Setter;
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class KakaoLoginResp {
-    private JwtToken jwtToken;
+    private TokenResponse tokenResponse;
 }

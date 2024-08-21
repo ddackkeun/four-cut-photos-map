@@ -7,6 +7,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MemberMapper {
+    public Member toEntity(Long kakaoId, String nickname, String kakaoRefreshToken) {
+        return Member.builder()
+                .kakaoId(kakaoId)
+                .nickname(nickname)
+                .kakaoRefreshToken(kakaoRefreshToken)
+                .build();
+    }
+
     public MemberResponse toResponse(Member member) {
         return MemberResponse.builder()
                 .id(member.getId())

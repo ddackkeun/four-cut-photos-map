@@ -1,5 +1,6 @@
 package com.idea5.four_cut_photos_map.security.jwt;
 
+import com.idea5.four_cut_photos_map.domain.token.model.TokenDTO;
 import com.idea5.four_cut_photos_map.security.jwt.exception.NonTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -55,32 +56,37 @@ public class JwtProvider {
      * @param tokenValid 토큰 유효기간
      * @return jwt access token
      */
-    public String generateToken(Long memberId, Collection<? extends GrantedAuthority> authorities, String tokenType, Long tokenValid) {
+    public TokenDTO generateToken(Long memberId, Collection<? extends GrantedAuthority> authorities, String tokenType, Long tokenValid) {
         Date now = new Date();
+        Date expiredAt = new Date(now.getTime() + 1000L * tokenValid);
+
         Claims claims = Jwts.claims()
                 .setIssuer("four_cut_photos_map")   // 토큰 발급자
                 .setIssuedAt(now)   // 토큰 발급 시간
-                .setExpiration(new Date(now.getTime() + 1000L * tokenValid));   // 토큰 만료 시간
+                .setExpiration(expiredAt);   // 토큰 만료 시간
         claims.put("token_type", tokenType);    // 토큰 타입
         // 회원 기반 정보
         claims.put("id", memberId);
         claims.put("authorities", authorities);
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setClaims(claims)  // Custom Claims 정보(맨 위에 적지않으면 아래 값이 덮어씌워져 누락됨!)
                 .signWith(getSecretKey(), SignatureAlgorithm.HS512) // HS512, 비밀키로 서명
-                .compact(); // 토큰 생성
+                .compact();// 토큰 생성
+
+        return TokenDTO.builder()
+                .token(token)
+                .expiredAt(expiredAt)
+                .build();
     }
 
     // accessToken 발급
-    public String generateAccessToken(Long memberId, Collection<? extends GrantedAuthority> authorities) {
-        log.info("accessToken 발급");
+    public TokenDTO generateAccessToken(Long memberId, Collection<? extends GrantedAuthority> authorities) {
         return generateToken(memberId, authorities, ACCESS_TOKEN.getName(), accessTokenValidationSecond);
     }
 
     // refreshToken 발급
-    public String generateRefreshToken(Long memberId, Collection<? extends GrantedAuthority> authorities) {
-        log.info("refreshToken 발급");
+    public TokenDTO generateRefreshToken(Long memberId, Collection<? extends GrantedAuthority> authorities) {
         return generateToken(memberId, authorities, REFRESH_TOKEN.getName(), refreshTokenValidationSecond);
     }
 
