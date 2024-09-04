@@ -20,7 +20,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -59,11 +58,7 @@ public class Member extends BaseEntity {
         this.kakaoRefreshToken = kakaoRefreshToken;
     }
 
-    public void changeStatus(MemberStatus status) {
+    public void updateStatus(MemberStatus status) {
         this.status = status;
-    }
-
-    public void changeMainTitleName(String memberTitleName) {
-        this.mainTitleName = memberTitleName;
     }
 }

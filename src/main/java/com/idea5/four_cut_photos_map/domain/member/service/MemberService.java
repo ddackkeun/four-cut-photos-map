@@ -38,53 +38,6 @@ public class MemberService {
     private final MemberTitleService memberTitleService;
     private final FavoriteService favoriteService;
     private final ReviewRequestService reviewRequestService;
-    private final MemberMapper memberMapper;
-
-    @Transactional
-    public Member login(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken) {
-        return memberRepository.findByKakaoId(kakaoUserInfo.getId())
-                .map(existingMember -> updateMember(existingMember, kakaoToken))
-                .orElseGet(() -> registerMember(kakaoUserInfo, kakaoToken));
-    }
-
-    private Member updateMember(Member member, KakaoTokenResp kakaoToken) {
-        member.updateKakaoRefreshToken(kakaoToken.getRefreshToken());
-        member = memberRepository.save(member);
-
-        redisDao.setValues(
-                RedisDao.getKakaoAtkKey(member.getId()),
-                kakaoToken.getAccessToken(),
-                Duration.ofSeconds(kakaoToken.getExpiresIn())
-        );
-
-        return member;
-    }
-
-    private Member registerMember(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken) {
-        String nickname = generateUniqueNickname(kakaoUserInfo.getNickname());
-        Member newMember = memberMapper.toEntity(kakaoUserInfo.getId(), nickname, kakaoToken.getRefreshToken());
-        newMember.changeStatus(MemberStatus.REGISTERED);
-
-        newMember = memberRepository.save(newMember);
-
-        redisDao.setValues(
-                RedisDao.getKakaoAtkKey(newMember.getId()),
-                kakaoToken.getAccessToken(),
-                Duration.ofSeconds(kakaoToken.getExpiresIn())
-        );
-
-        return newMember;
-    }
-
-    // 유니크한 닉네임 생성
-    public String generateUniqueNickname(String nickname) {
-        String newNickname;
-        do {
-            newNickname = nickname + Util.generateRandomNumber(4);
-        } while (memberRepository.existsByNickname(newNickname));
-
-        return newNickname;
-    }
 
     public Member findById(Long id) {
         return memberRepository.findById(id).orElse(null);

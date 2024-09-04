@@ -1,6 +1,7 @@
 package com.idea5.four_cut_photos_map.domain.memberTitle.service;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
+import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitleResp;
 import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitlesResp;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
@@ -28,9 +29,14 @@ import java.util.stream.Collectors;
 public class MemberTitleService {
     private final MemberTitleRepository memberTitleRepository;
     private final MemberTitleLogRepository memberTitleLogRepository;
+    private final MemberRepository memberRepository;
 
     public MemberTitle findById(Long id) {
         return memberTitleRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_TITLE_NOT_FOUND));
+    }
+
+    public Optional<MemberTitleLog> getMemberTitleLog(Long memberId, Long memberTitleId) {
+        return memberTitleLogRepository.findByMemberIdAndMemberTitleId(memberId, memberTitleId);
     }
 
     // 회원 칭호 정보 조회
@@ -143,27 +149,22 @@ public class MemberTitleService {
         return memberTitleLog == null ? "" : memberTitleLog.getMemberTitleName();
     }
 
-    @Transactional
-    public void issueNewbieTitle(Member member) {
-        MemberTitle newbieTitle = findById(MemberTitleType.NEWBIE.getCode());
-        MemberTitleLog memberTitleLog = MemberTitleLog.builder()
-                .member(member)
-                .memberTitle(newbieTitle)
-                .isMain(true)
-                .build();
-        memberTitleLogRepository.save(memberTitleLog);
-
-        member.changeMainTitleName(newbieTitle.getName());
-    }
-
-    @Transactional
-    public void issueMemberTitle(Member member, Long memberTitleId) {
+    public MemberTitleLog issueMemberTitle(Long memberId, Long memberTitleId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         MemberTitle memberTitle = findById(memberTitleId);
         MemberTitleLog memberTitleLog = MemberTitleLog.builder()
                 .member(member)
                 .memberTitle(memberTitle)
+                .isMain(false)
                 .build();
 
-        memberTitleLogRepository.save(memberTitleLog);
+        return memberTitleLogRepository.save(memberTitleLog);
     }
+
+    @Transactional
+    public void issueNewbieTitle(Long memberId) {
+        issueMemberTitle(memberId, MemberTitleType.NEWBIE.getCode());
+    }
+
 }

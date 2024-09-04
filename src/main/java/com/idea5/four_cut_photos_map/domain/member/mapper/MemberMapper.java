@@ -26,7 +26,7 @@ public class MemberMapper {
         return MemberResponse.builder()
                 .id(member.getId())
                 .nickname(member.getNickname())
-                .mainMemberTitle(mainMemberTitleName)
+                .mainTitleName(mainMemberTitleName)
                 .build();
     }
 }

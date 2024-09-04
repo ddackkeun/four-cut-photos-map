@@ -2,134 +2,160 @@ package com.idea5.four_cut_photos_map.domain.memberTitle.service;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
-import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitleResp;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
+import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleType;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleRepository;
+import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
-import com.idea5.four_cut_photos_map.global.util.DatabaseCleaner;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.idea5.four_cut_photos_map.global.error.ErrorCode.MEMBER_TITLE_NOT_FOUND;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.Optional;
 
-@Slf4j
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
-class MemberTitleServiceTest {
-    @Autowired
-    private MemberTitleService memberTitleService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
-    @Autowired
+@ExtendWith(MockitoExtension.class)
+public class MemberTitleServiceTest {
+
+    @Mock
     private MemberRepository memberRepository;
 
-    @Autowired
+    @Mock
     private MemberTitleRepository memberTitleRepository;
 
-    @Autowired
+    @Mock
     private MemberTitleLogRepository memberTitleLogRepository;
 
-    @BeforeEach
-    void init() {
-        log.info("---Before init()---");
-        memberTitleRepository.save(new MemberTitle("뉴비", "회원가입", "뉴비 컬러 이미지", "뉴비 흑백 이미지"));
-        memberTitleRepository.save(new MemberTitle("리뷰 첫 걸음", "첫번째 리뷰 작성", "리뷰 첫 걸음 컬러 이미지", "리뷰 첫 걸음 흑백 이미지"));
-        memberTitleRepository.save(new MemberTitle("리뷰 홀릭", "리뷰 3개 이상 작성", "리뷰 홀릭 컬러 이미지", "리뷰 홀릭 흑백 이미지"));
-        memberTitleRepository.save(new MemberTitle("찜 첫 걸음", "첫번째 찜 추가", "찜 첫 걸음 컬러 이미지", "찜 첫 걸음 흑백 이미지"));
-        memberTitleRepository.save(new MemberTitle("찜 홀릭", "찜 3개 이상 추가", "찜 홀릭 컬러 이미지", "찜 홀릭 흑백 이미지"));
-    }
-
-    @Autowired
-    DatabaseCleaner databaseCleaner;
-
-    @AfterEach
-    void clear() {
-        databaseCleaner.execute();
-    }
+    @InjectMocks
+    private MemberTitleService memberTitleService;
 
     @Test
-    @DisplayName("1번 회원이 획득하지 않은 2번 칭호 정보를 조회한다.")
-    void t1() {
+    @DisplayName("id에 해당하는 회원칭호가 있을 때 해당 회원 칭호를 반환")
+    void findById_WhenMemberTitleFound_ReturnMemberTitle() {
         // given
-        Member member = memberRepository.save(Member.builder().id(1L).nickname("user").build());
-        Long memberTitleId = 2L;
+        Long memberId = 1L;
+        MemberTitle memberTitle = MemberTitle.builder().id(memberId).build();
+
+        when(memberTitleRepository.findById(memberId)).thenReturn(Optional.of(memberTitle));
+
         // when
-        MemberTitleResp memberTitleInfo = memberTitleService.getMemberTitle(memberTitleId, member);
+        MemberTitle response = memberTitleService.findById(memberId);
+
         // then
-        assertAll(
-                () -> assertThat(memberTitleInfo.getId()).isEqualTo(2L),
-                () -> assertThat(memberTitleInfo.getName()).isEqualTo("리뷰 첫 걸음"),
-                () -> assertThat(memberTitleInfo.getStandard()).isEqualTo("첫번째 리뷰 작성"),
-                () -> assertThat(memberTitleInfo.getImageUrl()).isEqualTo("리뷰 첫 걸음 흑백 이미지"),
-                () -> assertThat(memberTitleInfo.getIsHolding()).isEqualTo(false),
-                () -> assertThat(memberTitleInfo.getIsMain()).isEqualTo(false)
-        );
+        assertNotNull(response);
+        assertEquals(memberId, response.getId());
     }
 
     @Test
-    @DisplayName("1번 회원이 획득하고 대표 칭호로 설정된 1번 칭호 정보를 조회한다.")
-    void t2() {
+    @DisplayName("id에 해당하는 회원 칭호가 없을 때 예외를 발생")
+    void findById_WhenMemberTitleNotFound_ThrowsException() {
         // given
-        Member member = memberRepository.save(Member.builder().id(1L).nickname("user").build());
+        Long memberId = 1L;
+
+        when(memberTitleRepository.findById(anyLong())).thenReturn(Optional.empty());
+        
+        // when
+        // then
+        BusinessException resultException = assertThrows(BusinessException.class, () -> memberTitleService.findById(memberId));
+
+        Assertions.assertEquals(ErrorCode.MEMBER_TITLE_NOT_FOUND, resultException.getErrorCode());
+        verify(memberTitleRepository, times(1)).findById(anyLong());
+    }
+
+
+    @Test
+    @DisplayName("회원과 회원칭호가 있을 때 회원 칭호 기록 생성")
+    void issueMemberTitle_WhenMemberAndMemberTitleFound_CreateAndReturnMemberTitleLog() {
+        // given
+        Long memberId = 1L;
         Long memberTitleId = 1L;
-        MemberTitle memberTitle = memberTitleRepository.findById(memberTitleId).orElse(null);
-        memberTitleLogRepository.save(new MemberTitleLog(member, memberTitle, true));
+        Member member = Member.builder().id(memberId).build();
+        MemberTitle memberTitle = MemberTitle.builder().id(memberTitleId).build();
+        MemberTitleLog memberTitleLog = MemberTitleLog.builder().member(member).memberTitle(memberTitle).isMain(false).build();
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberTitleRepository.findById(memberTitleId)).thenReturn(Optional.of(memberTitle));
+        when(memberTitleLogRepository.save(any(MemberTitleLog.class))).thenReturn(memberTitleLog);
+
         // when
-        MemberTitleResp memberTitleInfo = memberTitleService.getMemberTitle(memberTitleId, member);
+        MemberTitleLog response = memberTitleService.issueMemberTitle(memberId, memberTitleId);
+
         // then
-        assertAll(
-                () -> assertThat(memberTitleInfo.getId()).isEqualTo(1L),
-                () -> assertThat(memberTitleInfo.getName()).isEqualTo("뉴비"),
-                () -> assertThat(memberTitleInfo.getStandard()).isEqualTo("회원가입"),
-                () -> assertThat(memberTitleInfo.getImageUrl()).isEqualTo("뉴비 컬러 이미지"),
-                () -> assertThat(memberTitleInfo.getIsHolding()).isEqualTo(true),
-                () -> assertThat(memberTitleInfo.getIsMain()).isEqualTo(true)
-        );
+        assertNotNull(response);
+        assertEquals(memberId, response.getMember().getId());
+        assertEquals(memberTitleId, response.getMemberTitle().getId());
     }
 
     @Test
-    @DisplayName("1번 회원이 획득하고 대표 칭호로 설정되지 않은 1번 칭호 정보를 조회한다.")
-    void t3() {
+    @DisplayName("id에 해당하는 회원이 없을 때 예외 발생")
+    void issueMemberTitle_WhenMemberNotFound_ThrowsException() {
         // given
-        Member member = memberRepository.save(Member.builder().id(1L).nickname("user").build());
+        Long memberId = 1L;
         Long memberTitleId = 1L;
-        MemberTitle memberTitle = memberTitleRepository.findById(memberTitleId).orElse(null);
-        memberTitleLogRepository.save(new MemberTitleLog(member, memberTitle, false));
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+
         // when
-        MemberTitleResp memberTitleInfo = memberTitleService.getMemberTitle(memberTitleId, member);
         // then
-        assertAll(
-                () -> assertThat(memberTitleInfo.getId()).isEqualTo(1L),
-                () -> assertThat(memberTitleInfo.getName()).isEqualTo("뉴비"),
-                () -> assertThat(memberTitleInfo.getStandard()).isEqualTo("회원가입"),
-                () -> assertThat(memberTitleInfo.getImageUrl()).isEqualTo("뉴비 컬러 이미지"),
-                () -> assertThat(memberTitleInfo.getIsHolding()).isEqualTo(true),
-                () -> assertThat(memberTitleInfo.getIsMain()).isEqualTo(false)
-        );
+        BusinessException resultException = assertThrows(BusinessException.class, () -> memberTitleService.issueMemberTitle(memberId, memberTitleId));
+        assertEquals(ErrorCode.MEMBER_NOT_FOUND, resultException.getErrorCode());
+        verify(memberRepository, times(1)).findById(memberId);
+        verify(memberTitleRepository, never()).findById(anyLong());
+        verify(memberTitleLogRepository, never()).save(any(MemberTitleLog.class));
     }
 
     @Test
-    @DisplayName("1번 회원이 존재하지 않는 6번 칭호 정보를 조회한다.")
-    void t4() {
+    @DisplayName("id에 해당하는 회원칭호가 없을 때 예외 발생")
+    void issueMemberTitle_WhenMemberTitleNotFound_ThrowsException() {
         // given
-        Member member = memberRepository.save(Member.builder().id(1L).nickname("user").build());
-        Long memberTitleId = 6L;
-        // when, then
-        BusinessException e = assertThrows(BusinessException.class, () ->
-                memberTitleService.getMemberTitle(memberTitleId, member)
-        );
-        assertThat(e.getMessage()).isEqualTo(MEMBER_TITLE_NOT_FOUND.getMessage());
+        Long memberId = 1L;
+        Long memberTitleId = 1L;
+        Member member = Member.builder().id(memberId).build();
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberTitleRepository.findById(memberTitleId)).thenReturn(Optional.empty());
+
+        // when
+        // then
+        BusinessException resultException = assertThrows(BusinessException.class, () -> memberTitleService.issueMemberTitle(memberId, memberTitleId));
+        assertEquals(ErrorCode.MEMBER_TITLE_NOT_FOUND, resultException.getErrorCode());
+
+        verify(memberRepository, times(1)).findById(memberId);
+        verify(memberTitleRepository, times(1)).findById(memberTitleId);
+        verify(memberTitleLogRepository, never()).save(any(MemberTitleLog.class));
     }
+
+    @Test
+    @DisplayName("id에 회원과 회원칭호를 통해 뉴비 칭호 발급")
+    void issueNewbieTitle_WhenMemberAndMemberTitleFound_ReturnNewbieMemberTitle() {
+        // given
+        Long memberId = 1L;
+        MemberTitleType newbie = MemberTitleType.NEWBIE;
+        Member member = Member.builder().id(memberId).build();
+        MemberTitle memberTitle = MemberTitle.builder().id(newbie.getCode()).build();
+        MemberTitleLog memberTitleLog = MemberTitleLog.builder().member(member).memberTitle(memberTitle).isMain(false).build();
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberTitleRepository.findById(newbie.getCode())).thenReturn(Optional.of(memberTitle));
+        when(memberTitleLogRepository.save(any(MemberTitleLog.class))).thenReturn(memberTitleLog);
+
+        // when
+        memberTitleService.issueNewbieTitle(memberId);
+
+        // then
+        verify(memberRepository, times(1)).findById(memberId);
+        verify(memberTitleRepository, times(1)).findById(newbie.getCode());
+        verify(memberTitleLogRepository, times(1)).save(any(MemberTitleLog.class));
+    }
+
 }

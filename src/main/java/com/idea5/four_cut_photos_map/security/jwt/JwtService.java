@@ -9,10 +9,12 @@ import com.idea5.four_cut_photos_map.security.jwt.dto.response.TokenResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.Collection;
 
 /**
  * redis 를 이용하는 jwt 서비스(토큰 발급/재발급, 블랙리스트 검사)
@@ -26,15 +28,15 @@ public class JwtService {
     private final JwtProvider jwtProvider;
     private final RedisDao redisDao;
 
-    public TokenResponse generateTokens(Member member) {
-        TokenDTO accessToken = jwtProvider.generateAccessToken(member.getId(), member.getAuthorities());
-        TokenDTO refreshToken = jwtProvider.generateRefreshToken(member.getId(), member.getAuthorities());
+    public TokenResponse generateTokens(Long memberId, Collection<? extends GrantedAuthority> authorities) {
+        TokenDTO accessToken = jwtProvider.generateAccessToken(memberId, authorities);
+        TokenDTO refreshToken = jwtProvider.generateRefreshToken(memberId, authorities);
 
         long currentTimeMillis = System.currentTimeMillis();
         long expiredTimeMillis = refreshToken.getExpiredAt().getTime();
 
         redisDao.setValues(
-                RedisDao.getRtkKey(member.getId()),
+                RedisDao.getRtkKey(memberId),
                 refreshToken.getToken(),
                 Duration.ofMillis(expiredTimeMillis - currentTimeMillis)
         );

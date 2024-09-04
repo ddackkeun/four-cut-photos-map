@@ -57,4 +57,5 @@ class MemberReadServiceImplTest {
         assertEquals(ErrorCode.MEMBER_NOT_FOUND, exception.getErrorCode());
         verify(memberRepository, times(1)).findById(memberId);
     }
+
 }
