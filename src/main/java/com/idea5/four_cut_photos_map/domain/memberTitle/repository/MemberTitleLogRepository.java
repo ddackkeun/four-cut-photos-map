@@ -21,4 +21,7 @@ public interface MemberTitleLogRepository extends JpaRepository<MemberTitleLog, 
 
     @Query("SELECT mtl FROM MemberTitleLog mtl WHERE mtl.member.id = :memberId AND mtl.memberTitle.id = :memberTitleId")
     Optional<MemberTitleLog> findByMemberIdAndMemberTitleId(Long memberId, Long memberTitleId);
+
+    @Query("SELECT COUNT(mtl) FROM MemberTitleLog mtl WHERE mtl.member.id = :memberId")
+    Long countByMemberId(Long memberId);
 }

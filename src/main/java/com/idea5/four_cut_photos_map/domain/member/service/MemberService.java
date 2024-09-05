@@ -1,7 +1,7 @@
 package com.idea5.four_cut_photos_map.domain.member.service;
 
 import com.idea5.four_cut_photos_map.domain.favorite.service.FavoriteService;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResp;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResponse;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberTitleInfoResp;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberWithdrawlResp;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
@@ -32,15 +32,6 @@ public class MemberService {
 
     public Member findById(Long id) {
         return memberRepository.findById(id).orElse(null);
-    }
-
-    // 회원 id 로 기본 정보 조회
-    public MemberInfoResp getMemberInfo(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND)
-        );
-        MemberTitleInfoResp memberTitleInfo = getMemberTitleInfo(member);
-        return MemberInfoResp.toDto(member, memberTitleInfo.getMainMemberTitle(), memberTitleInfo.getMemberTitleCnt());
     }
 
     public MemberTitleInfoResp getMemberTitleInfo(Member member) {

@@ -3,12 +3,13 @@ package com.idea5.four_cut_photos_map.domain.member.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.idea5.four_cut_photos_map.domain.auth.service.KakaoService;
 import com.idea5.four_cut_photos_map.domain.member.dto.request.MemberUpdateRequest;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResp;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResponse;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberWithdrawlResp;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResponse;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberReadService;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberRequestService;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberService;
+import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
 import com.idea5.four_cut_photos_map.global.common.response.RsData;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +35,11 @@ public class MemberController {
 
     private final String BEARER_TOKEN_PREFIX = "Bearer ";
 
-    // 회원 기본정보 조회
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/info")
-    public ResponseEntity<MemberInfoResp> getProfile(@AuthenticationPrincipal MemberContext memberContext) {
-        MemberInfoResp memberInfoResp = memberService.getMemberInfo(memberContext.getId());
-        return ResponseEntity.ok(memberInfoResp);
+    public ResponseEntity<MemberInfoResponse> getProfile(@AuthenticationPrincipal MemberContext memberContext) {
+        MemberInfoResponse response = memberReadService.getMemberInfo(memberContext.getId());
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("isAuthenticated()")

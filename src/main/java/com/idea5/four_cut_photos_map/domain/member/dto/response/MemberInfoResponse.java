@@ -11,17 +11,17 @@ import lombok.Setter;
 @Setter
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class MemberInfoResp {
+public class MemberInfoResponse {
     private Long id;
     private String nickname;
-    private String mainMemberTitle; // 대표 회원칭호
-    private Integer memberTitleCnt; // 회원칭호 개수
+    private String mainTitle;
+    private Integer memberTitleCnt;
 
-    public static MemberInfoResp toDto(Member member, String mainMemberTitle, Integer memberTitleCnt) {
-        return MemberInfoResp.builder()
+    public static MemberInfoResponse toResponse(Member member, Integer memberTitleCnt) {
+        return MemberInfoResponse.builder()
                 .id(member.getId())
                 .nickname(member.getNickname())
-                .mainMemberTitle(mainMemberTitle)
+                .mainTitle(member.getMainTitleName())
                 .memberTitleCnt(memberTitleCnt)
                 .build();
     }

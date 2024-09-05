@@ -1,9 +1,11 @@
 package com.idea5.four_cut_photos_map.domain.member.service;
 
+import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResponse;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
+import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +25,9 @@ import static org.mockito.Mockito.*;
 class MemberReadServiceImplTest {
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private MemberTitleLogRepository memberTitleLogRepository;
 
     @InjectMocks
     MemberReadServiceImpl memberReadService;
@@ -126,7 +131,7 @@ class MemberReadServiceImplTest {
 
     @Test
     @DisplayName("회원이 없을 경우 예외를 발생")
-    void checkNickname_MemberNotFound_ThrowException() {
+    void checkNickname_MemberNotFound_ThrowsException() {
         // given
         Long memberId = 1L;
         String newNickname = "newNickname";
@@ -139,4 +144,39 @@ class MemberReadServiceImplTest {
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
         verify(memberRepository, never()).existsByNickname(newNickname);
     }
+
+    @Test
+    @DisplayName("회원과 회원 칭호가 존재할 때 회원 정보 반환")
+    void getMemberInfo_MemberAndMemberTitleLogExist_ReturnMemberInfoResponse() {
+        // given
+        Long memberId = 1L;
+        Long titleCount = 5L;
+        Member member = Member.builder().id(memberId).status(MemberStatus.REGISTERED).build();
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
+        given(memberTitleLogRepository.countByMemberId(memberId)).willReturn(titleCount);
+
+        // when
+        MemberInfoResponse response = memberReadService.getMemberInfo(memberId);
+
+        // then
+        assertEquals(memberId, response.getId());
+        assertEquals(titleCount.intValue(), response.getMemberTitleCnt());
+    }
+
+    @Test
+    @DisplayName("회원이 없을 때 예외 발생")
+    void getMemberInfo_MemberNotFound_ThrowsException() {
+        // given
+        Long memberId = 1L;
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.empty());
+
+        // when & then
+        BusinessException response = assertThrows(BusinessException.class, () -> memberReadService.getMemberInfo(memberId));
+        assertEquals(ErrorCode.MEMBER_NOT_FOUND, response.getErrorCode());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberTitleLogRepository, never()).countByMemberId(anyLong());
+    }
+
 }
