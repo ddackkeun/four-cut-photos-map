@@ -49,7 +49,8 @@ public enum ErrorCode {
     NOT_IMAGE_FILE(HttpStatus.BAD_REQUEST, "1001", "이미지 파일(png, jpeg, gif, webp)이 아닙니다."),
     FILE_SIZE_EXCEED(HttpStatus.BAD_REQUEST, "1002", "업로드 가능한 파일 용량을 초과했습니다."),
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "1003", "이미지 업로드에 실패했습니다."),
-    NO_FILES_PROVIDED(HttpStatus.BAD_REQUEST, "1004", "요청에 제공된 파일이 없습니다.");
+    NO_FILES_PROVIDED(HttpStatus.BAD_REQUEST, "1004", "요청에 제공된 파일이 없습니다.")
+    ;
 
     private HttpStatus httpStatus;
     private String errorCode;

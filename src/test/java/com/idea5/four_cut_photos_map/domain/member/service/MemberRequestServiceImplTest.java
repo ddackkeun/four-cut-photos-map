@@ -7,17 +7,21 @@ import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
+import com.idea5.four_cut_photos_map.global.error.ErrorCode;
+import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Duration;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -140,5 +144,62 @@ class MemberRequestServiceImplTest {
         assertNotNull(response);
         assertTrue(response.startsWith(nickname));
         verify(memberRepository, times(1)).existsByNickname(anyString());
+    }
+
+    @Test
+    @DisplayName("회원이 존재하고 닉네임이 중복되지 않는 경우 회원 닉네임 변경")
+    void updateNickname_WhenMemberExistsAndNicknameIsNotDuplicate_UpdateSuccessfully() {
+        // given
+        Long memberId = 1L;
+        String currentNickname = "originNickname";
+        String newNickname = "newNickname";
+        Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
+        given(memberRepository.save(any(Member.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        String response = memberRequestService.updateNickname(memberId, newNickname);
+
+        // then
+        assertNotEquals(currentNickname, response);
+        assertEquals(newNickname, response);
+        assertEquals(newNickname, existingMember.getNickname());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository).save(existingMember);
+    }
+
+    @Test
+    @DisplayName("변경하려는 닉네임이 중복일 경우 데이터베이스에서 예외를 발생")
+    void updateNickname_WhenNicknameIsDuplicate_ThrowsException() {
+        // given
+        Long memberId = 1L;
+        String currentNickname = "oldNickname";
+        String duplicateNickname = "duplicateNickname";
+        Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
+        given(memberRepository.save(any(Member.class))).willThrow(new DataIntegrityViolationException("Duplicate entry for nickname"));
+
+        // when & then
+        assertThrows(DataIntegrityViolationException.class, () -> memberRequestService.updateNickname(memberId, duplicateNickname));
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository).save(any(Member.class));
+    }
+
+    @Test
+    @DisplayName("회원이 존재하지 않을 경우 예외 발생")
+    void updateNickname_WhenMemberNotFound_ThrowsBusinessException() {
+        // given
+        Long memberId = 99L;
+        String newNickname = "newNickname";
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.empty());
+
+        // when & then
+        BusinessException response = assertThrows(BusinessException.class, () -> memberRequestService.updateNickname(memberId, newNickname));
+        assertEquals(ErrorCode.MEMBER_NOT_FOUND, response.getErrorCode());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository, never()).save(any(Member.class));
     }
 }

@@ -1,6 +1,8 @@
 package com.idea5.four_cut_photos_map.domain.member.service;
 
+import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
+import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
@@ -13,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,4 +60,83 @@ class MemberReadServiceImplTest {
         verify(memberRepository, times(1)).findById(memberId);
     }
 
+    @Test
+    @DisplayName("현재 닉네임과 동일한 경우 true false 응답 반환")
+    void checkNickname_NicknameIsSameAsCurrent_ShouldReturnTrueFalse() {
+        // given
+        Long memberId = 1L;
+        String currentNickname = "currentNickname";
+        Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
+
+        // when
+        NicknameCheckResponse response = memberReadService.checkNickname(memberId, currentNickname);
+
+        // then
+        assertTrue(response.isSameAsCurrent());
+        assertFalse(response.isUsed());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository, never()).existsByNickname(currentNickname);
+    }
+
+    @Test
+    @DisplayName("변경하려는 닉네임이 이미 사용중인 닉네임일 경우 false true 반환")
+    void checkNickname_NicknameAlreadyExists_ShouldReturnFalseTrue() {
+        // given
+        Long memberId = 1L;
+        String currentNickname = "currentNickname";
+        String existingNickname = "existingNickname";
+        Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
+        given(memberRepository.existsByNickname(existingNickname)).willReturn(true);
+
+        // when
+        NicknameCheckResponse response = memberReadService.checkNickname(memberId, existingNickname);
+
+        // then
+        assertFalse(response.isSameAsCurrent());
+        assertTrue(response.isUsed());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository).existsByNickname(existingNickname);
+    }
+
+    @Test
+    @DisplayName("현재 닉네임이 아니고 다른 유저가 사용하지 않는 닉네임일 경우 false 응답 반환")
+    void checkNickname_NicknameIsNotSameAsCurrentAndNotUsed_ShouldReturnFalseFalse() {
+        // given
+        Long memberId = 1L;
+        String currentNickname = "currentNickname";
+        String newNickname = "nickname";
+        Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
+        given(memberRepository.existsByNickname(newNickname)).willReturn(false);
+
+        // when
+        NicknameCheckResponse response = memberReadService.checkNickname(memberId, newNickname);
+
+        // then
+        assertFalse(response.isSameAsCurrent());
+        assertFalse(response.isUsed());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository).existsByNickname(newNickname);
+    }
+
+    @Test
+    @DisplayName("회원이 없을 경우 예외를 발생")
+    void checkNickname_MemberNotFound_ThrowException() {
+        // given
+        Long memberId = 1L;
+        String newNickname = "newNickname";
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.empty());
+
+        // when & then
+        BusinessException response = assertThrows(BusinessException.class, () -> memberReadService.checkNickname(memberId, newNickname));
+        assertEquals(ErrorCode.MEMBER_NOT_FOUND, response.getErrorCode());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberRepository, never()).existsByNickname(newNickname);
+    }
 }

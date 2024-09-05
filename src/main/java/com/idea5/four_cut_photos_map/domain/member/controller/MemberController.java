@@ -2,10 +2,12 @@ package com.idea5.four_cut_photos_map.domain.member.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.idea5.four_cut_photos_map.domain.auth.service.KakaoService;
-import com.idea5.four_cut_photos_map.domain.member.dto.request.MemberUpdateReq;
+import com.idea5.four_cut_photos_map.domain.member.dto.request.MemberUpdateRequest;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResp;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberWithdrawlResp;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResp;
+import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResponse;
+import com.idea5.four_cut_photos_map.domain.member.service.MemberReadService;
+import com.idea5.four_cut_photos_map.domain.member.service.MemberRequestService;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberService;
 import com.idea5.four_cut_photos_map.global.common.response.RsData;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
@@ -23,10 +25,13 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/member")
+@RequestMapping("/members")
 public class MemberController {
     private final MemberService memberService;
     private final KakaoService kakaoService;
+    private final MemberRequestService memberRequestService;
+    private final MemberReadService memberReadService;
+
     private final String BEARER_TOKEN_PREFIX = "Bearer ";
 
     // 회원 기본정보 조회
@@ -37,23 +42,24 @@ public class MemberController {
         return ResponseEntity.ok(memberInfoResp);
     }
 
-    // 회원 닉네임 수정
     @PreAuthorize("isAuthenticated()")
     @PatchMapping("/nickname")
     public ResponseEntity<Object> updateNickname(
             @AuthenticationPrincipal MemberContext memberContext,
-            @RequestBody @Valid MemberUpdateReq memberUpdateReq
+            @RequestBody @Valid MemberUpdateRequest request
     ) {
-        memberService.updateNickname(memberContext.getId(), memberUpdateReq);
-        return ResponseEntity.ok(null);
+        String updateNickname = memberRequestService.updateNickname(memberContext.getId(), request.getNickname());
+        return ResponseEntity.ok(updateNickname);
     }
 
-    // 회원 닉네임 중복조회
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/nickname")
-    public ResponseEntity<NicknameCheckResp> checkNickname(@RequestParam String nickname) {
-        NicknameCheckResp nicknameCheckResp = memberService.checkDuplicatedNickname(nickname);
-        return ResponseEntity.ok(nicknameCheckResp);
+    @GetMapping("/check-nickname")
+    public ResponseEntity<NicknameCheckResponse> checkNickname(
+            @AuthenticationPrincipal MemberContext memberContext,
+            @RequestParam String nickname
+    ) {
+        NicknameCheckResponse response = memberReadService.checkNickname(memberContext.getId(), nickname);
+        return ResponseEntity.ok(response);
     }
 
     // 회원 대표 칭호 수정

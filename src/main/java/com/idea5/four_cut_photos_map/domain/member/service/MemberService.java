@@ -1,16 +1,10 @@
 package com.idea5.four_cut_photos_map.domain.member.service;
 
-import com.idea5.four_cut_photos_map.domain.auth.dto.param.KakaoUserInfoParam;
-import com.idea5.four_cut_photos_map.domain.auth.dto.response.KakaoTokenResp;
 import com.idea5.four_cut_photos_map.domain.favorite.service.FavoriteService;
-import com.idea5.four_cut_photos_map.domain.member.dto.request.MemberUpdateReq;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoResp;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberTitleInfoResp;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberWithdrawlResp;
-import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResp;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
-import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
@@ -18,15 +12,12 @@ import com.idea5.four_cut_photos_map.domain.review.service.ReviewRequestService;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
-import com.idea5.four_cut_photos_map.global.util.Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -93,15 +84,7 @@ public class MemberService {
         return new MemberWithdrawlResp(id);
     }
 
-    // 회원 닉네임 수정
-    @Transactional
-    public void updateNickname(Long id, MemberUpdateReq memberUpdateReq) {
-        // 닉네임 중복 검사
-        if(memberRepository.existsByNickname(memberUpdateReq.getNickname()))
-            throw new BusinessException(ErrorCode.DUPLICATE_MEMBER_NICKNAME);
-        Member member = findById(id);
-        member.updateNickname(memberUpdateReq);
-    }
+
 
     // 회원 대표칭호 수정
     @Transactional
@@ -123,9 +106,5 @@ public class MemberService {
         return memberRepository.findAllByOrderByIdAsc();
     }
 
-    public NicknameCheckResp checkDuplicatedNickname(String nickname) {
-        boolean status = (memberRepository.existsByNickname(nickname) == false);
-        return new NicknameCheckResp(nickname, status);
-    }
 
 }

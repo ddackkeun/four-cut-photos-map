@@ -5,6 +5,7 @@ import com.idea5.four_cut_photos_map.security.jwt.exception.NonTokenException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -145,6 +146,18 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.FILE_SIZE_EXCEED.getErrorCode(), ErrorCode.FILE_SIZE_EXCEED.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * 데이터베이스 무결성 제약조건 위반에 의한 예외가 발생한 경우
+     * ex) unique, nullable 등
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.error("DataIntegrityViolationException", e);
+        ErrorResponse errorResponse = ErrorResponse.of(String.valueOf(HttpStatus.CONFLICT), e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     /**

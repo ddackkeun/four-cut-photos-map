@@ -8,6 +8,8 @@ import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
+import com.idea5.four_cut_photos_map.global.error.ErrorCode;
+import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
 import com.idea5.four_cut_photos_map.global.util.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -65,4 +67,15 @@ public class MemberRequestServiceImpl implements MemberRequestService {
         return newNickname;
     }
 
+    @Transactional
+    @Override
+    public String updateNickname(Long id, String nickname) {
+        Member member = memberRepository.findByIdAndStatus(id, MemberStatus.REGISTERED)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        member.updateNickname(nickname);
+        Member updatedMember = memberRepository.save(member);
+
+        return updatedMember.getNickname();
+    }
 }

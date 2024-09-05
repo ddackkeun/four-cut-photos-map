@@ -11,4 +11,6 @@ public interface MemberRequestService {
     Member register(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken);
 
     String generateUniqueNickname(String nickname);
+
+    String updateNickname(Long id, String nickname);
 }

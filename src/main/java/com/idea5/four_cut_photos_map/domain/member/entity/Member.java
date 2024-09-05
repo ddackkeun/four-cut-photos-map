@@ -1,11 +1,9 @@
 package com.idea5.four_cut_photos_map.domain.member.entity;
 
-import com.idea5.four_cut_photos_map.domain.member.dto.request.MemberUpdateReq;
 import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -50,8 +48,8 @@ public class Member extends BaseEntity {
         return authorities;
     }
 
-    public void updateNickname(MemberUpdateReq memberUpdateReq) {
-        this.nickname = memberUpdateReq.getNickname();
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
     }
 
     public void updateKakaoRefreshToken(String kakaoRefreshToken) {
