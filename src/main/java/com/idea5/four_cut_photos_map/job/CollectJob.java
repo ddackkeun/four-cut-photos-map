@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @See <a href="https://github.com/hayeon17kim/TIL/blob/master/project-badge-system.md">배지 시스템 참고</a>
@@ -41,17 +42,15 @@ public class CollectJob {
 
         // 회원별로 각 칭호 부여하기
         for(Member member : members) {
-            // 회원이 보유한 회원칭호 전체조회
-            log.info("---Before memberTitleService.findMemberTitleByMember(member)---");
-            List<Long> collectedMemberTitles = memberTitleService.findMemberTitleByMember(member);
+            Set<Long> collectedMemberTitleIds = memberTitleService.getMemberTitleIds(member.getId());
             for(MemberTitle memberTitle : memberTitles) {
                 // 1. 회원이 보유한 회원칭호는 패스
-                if(collectedMemberTitles.contains(memberTitle.getId()))
+                if(collectedMemberTitleIds.contains(memberTitle.getId()))
                     continue;
                 // 2. 회원이 보유하지 않은 회원칭호는 부여기준 검사 -> 부여
                 if(collectService.canGiveMemberTitle(member, memberTitle)) {
                     // 회원가입 칭호와 다른 칭호를 같은 날에 부여 받는 경우 회원가입 칭호를 대표 칭호로 설정
-                    boolean isMain = (memberTitle.getId() == MemberTitleType.NEWBIE.getCode()) ? true : false;
+                    boolean isMain = memberTitle.getId().equals(MemberTitleType.NEWBIE.getCode());
                     collectService.addMemberTitle(member, memberTitle, isMain);
                 }
             }

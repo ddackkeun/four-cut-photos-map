@@ -2,10 +2,18 @@ package com.idea5.four_cut_photos_map.domain.member.service;
 
 import com.idea5.four_cut_photos_map.domain.auth.dto.param.KakaoUserInfoParam;
 import com.idea5.four_cut_photos_map.domain.auth.dto.response.KakaoTokenResp;
+import com.idea5.four_cut_photos_map.domain.favorite.entity.Favorite;
+import com.idea5.four_cut_photos_map.domain.favorite.repository.FavoriteRepository;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.LoginResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
+import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
+import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
+import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
+import com.idea5.four_cut_photos_map.domain.review.entity.Review;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
+import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
@@ -18,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,6 +37,15 @@ import static org.mockito.Mockito.*;
 class MemberRequestServiceImplTest {
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private MemberTitleLogRepository memberTitleLogRepository;
+
+    @Mock
+    private FavoriteRepository favoriteRepository;
+
+    @Mock
+    private ReviewRepository reviewRepository;
 
     @Mock
     private RedisDao redisDao;
@@ -201,5 +219,61 @@ class MemberRequestServiceImplTest {
         assertEquals(ErrorCode.MEMBER_NOT_FOUND, response.getErrorCode());
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
         verify(memberRepository, never()).save(any(Member.class));
+    }
+
+
+    @Test
+    @DisplayName("회원 삭제 및 관련 정보 삭제")
+    void deleteMember_Success1() {
+        // given
+        Long memberId = 1L;
+        Member member = Member.builder().id(memberId).build();
+        MemberTitle memberTitle = MemberTitle.builder().id(1L).build();
+        List<MemberTitleLog> memberTitleLogs = List.of(MemberTitleLog.builder().id(1L).memberId(memberId).memberTitle(memberTitle).build());
+        List<Favorite> favorites = List.of(Favorite.builder().id(1L).member(member).build());
+        Review review = Review.builder().id(1L).member(member).status(ReviewStatus.REGISTERED).build();
+        List<Review> reviews = List.of(review);
+
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
+        given(redisDao.hasKey(RedisDao.getRtkKey(memberId))).willReturn(true);
+        given(redisDao.hasKey(RedisDao.getKakaoAtkKey(memberId))).willReturn(true);
+        given(memberTitleLogRepository.findAllByMemberId(memberId)).willReturn(memberTitleLogs);
+        given(favoriteRepository.findAllByMemberId(memberId)).willReturn(favorites);
+        given(reviewRepository.findAllByMemberId(memberId)).willReturn(reviews);
+
+        // when
+        memberRequestService.deleteMember(memberId);
+
+        // then
+        assertEquals(ReviewStatus.DELETED, review.getStatus());
+        assertEquals(MemberStatus.DELETED, member.getStatus());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(redisDao, times(2)).hasKey(anyString());
+        verify(redisDao).deleteValues(RedisDao.getRtkKey(memberId));
+        verify(redisDao).deleteValues(RedisDao.getKakaoAtkKey(memberId));
+        verify(memberTitleLogRepository).deleteAll(memberTitleLogs);
+        verify(favoriteRepository).deleteAll(favorites);
+    }
+
+    @Test
+    @DisplayName("회원이 없을 때 예외 발생")
+    void testDeleteMember_MemberNotFound() {
+        // given
+        Long memberId = 1L;
+
+        // Mock MemberRepository to throw exception
+        given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.empty());
+
+        // when & then
+        BusinessException response = assertThrows(BusinessException.class, () -> memberRequestService.deleteMember(memberId));
+        assertEquals(ErrorCode.MEMBER_NOT_FOUND, response.getErrorCode());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(redisDao, never()).hasKey(anyString());
+        verify(redisDao, never()).deleteValues(anyString());
+        verify(memberTitleLogRepository, never()).findAllByMemberId(anyLong());
+        verify(memberTitleLogRepository, never()).deleteAll(anyList());
+        verify(favoriteRepository, never()).findAllByMemberId(anyLong());
+        verify(favoriteRepository, never()).deleteAll(anyList());
+        verify(reviewRepository, never()).findAllByMemberId(anyLong());
     }
 }

@@ -21,12 +21,22 @@ import javax.persistence.*;
         @Index(name="idx_shop_brand", columnList="brand_id")})
 public class Shop extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "brand_id")
+    @JoinColumn(name = "brand_id", nullable = false)
     private Brand brand;
+
+    @Column(length = 100, nullable = false)
     private String placeName;
+
+    @Column(length = 150, nullable = false)
     private String address;
+
+    @Column(nullable = false)
     private Integer favoriteCnt;
+
+    @Column(nullable = false)
     private Integer reviewCnt;
+
+    @Column(nullable = false)
     private Double starRatingAvg;
 
 

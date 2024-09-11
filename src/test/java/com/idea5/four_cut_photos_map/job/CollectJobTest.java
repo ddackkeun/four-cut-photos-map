@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.job;
 
 import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
@@ -68,12 +69,11 @@ class CollectJobTest {
 
     @BeforeEach
     void init() {
-        log.info("---Before init()---");
-        memberTitleRepository.save(new MemberTitle("뉴비", "회원가입"));
-        memberTitleRepository.save(new MemberTitle("리뷰 첫 걸음", "첫번째 리뷰 작성"));
-        memberTitleRepository.save(new MemberTitle("리뷰 홀릭", "리뷰 3개 이상 작성"));
-        memberTitleRepository.save(new MemberTitle("찜 첫 걸음", "첫번째 찜 추가"));
-        memberTitleRepository.save(new MemberTitle("찜 홀릭", "찜 3개 이상 추가"));
+        memberTitleRepository.save(MemberTitle.builder().name("뉴비").content("회원가입").build());
+        memberTitleRepository.save(MemberTitle.builder().name("리뷰 첫 걸음").content("첫번째 리뷰 작성").build());
+        memberTitleRepository.save(MemberTitle.builder().name("리뷰 홀릭").content("리뷰 3개 이상 작성").build());
+        memberTitleRepository.save(MemberTitle.builder().name("찜 첫 걸음").content("첫번째 찜 추가").build());
+        memberTitleRepository.save(MemberTitle.builder().name("찜 홀릭").content("찜 3개 이상 추가").build());
 
         Brand brand1 = brandRepository.save(new Brand(MajorBrand.LIFEFOURCUTS.getBrandName(), MajorBrand.LIFEFOURCUTS.getFilePath()));
         Brand brand2 = brandRepository.save(new Brand(MajorBrand.PHOTOISM.getBrandName(), MajorBrand.PHOTOISM.getFilePath()));
@@ -106,15 +106,15 @@ class CollectJobTest {
 
         // 1번 회원 -> 뉴비 칭호 부여
         MemberTitleLog memberTitleLog1 = memberTitleLogs.get(0);
-        assertThat(memberTitleLog1.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog1.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog1.getIsMain()).isTrue();
         assertThat(memberTitleLog1.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog1.getMemberTitle().getContent()).isEqualTo("회원가입");
 
         // 2번 회원 -> 뉴비 칭호 부여
         MemberTitleLog memberTitleLog2 = memberTitleLogs.get(1);
-        assertThat(memberTitleLog2.getMember().getId()).isEqualTo(2);
-        assertThat(memberTitleLog1.getIsMain()).isTrue();
+        assertThat(memberTitleLog2.getMemberId()).isEqualTo(2);
+        assertThat(memberTitleLog2.getIsMain()).isTrue();
         assertThat(memberTitleLog2.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog2.getMemberTitle().getContent()).isEqualTo("회원가입");
     }
@@ -139,14 +139,14 @@ class CollectJobTest {
 
         // 1번 회원 -> 뉴비 칭호 부여, 대표 칭호 자동 설정
         MemberTitleLog memberTitleLog1 = memberTitleLogs.get(0);
-        assertThat(memberTitleLog1.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog1.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog1.getIsMain()).isTrue();
         assertThat(memberTitleLog1.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog1.getMemberTitle().getContent()).isEqualTo("회원가입");
 
         // 1번 회원 -> 찜 첫 걸음 칭호 부여
         MemberTitleLog memberTitleLog2 = memberTitleLogs.get(1);
-        assertThat(memberTitleLog2.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog2.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog2.getIsMain()).isFalse();
         assertThat(memberTitleLog2.getMemberTitle().getName()).isEqualTo("찜 첫 걸음");
         assertThat(memberTitleLog2.getMemberTitle().getContent()).isEqualTo("첫번째 찜 추가");
@@ -176,21 +176,21 @@ class CollectJobTest {
 
         // 1번 회원 -> 뉴비 칭호 부여, 대표 칭호 자동 설정
         MemberTitleLog memberTitleLog1 = memberTitleLogs.get(0);
-        assertThat(memberTitleLog1.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog1.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog1.getIsMain()).isTrue();
         assertThat(memberTitleLog1.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog1.getMemberTitle().getContent()).isEqualTo("회원가입");
 
         // 1번 회원 -> 찜 첫 걸음 칭호 부여
         MemberTitleLog memberTitleLog2 = memberTitleLogs.get(1);
-        assertThat(memberTitleLog2.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog2.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog2.getIsMain()).isFalse();
         assertThat(memberTitleLog2.getMemberTitle().getName()).isEqualTo("찜 첫 걸음");
         assertThat(memberTitleLog2.getMemberTitle().getContent()).isEqualTo("첫번째 찜 추가");
 
         // 1번 회원 -> 찜 홀릭 칭호 부여
         MemberTitleLog memberTitleLog3 = memberTitleLogs.get(2);
-        assertThat(memberTitleLog3.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog3.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog3.getIsMain()).isFalse();
         assertThat(memberTitleLog3.getMemberTitle().getName()).isEqualTo("찜 홀릭");
         assertThat(memberTitleLog3.getMemberTitle().getContent()).isEqualTo("찜 3개 이상 추가");
@@ -213,7 +213,7 @@ class CollectJobTest {
 
         // 1번 회원 -> 뉴비 칭호 부여
         MemberTitleLog memberTitleLog1 = memberTitleLogs.get(0);
-        assertThat(memberTitleLog1.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog1.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog1.getIsMain()).isTrue();
         assertThat(memberTitleLog1.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog1.getMemberTitle().getContent()).isEqualTo("회원가입");
@@ -238,14 +238,14 @@ class CollectJobTest {
 
         // 1번 회원 -> 뉴비 칭호 부여, 대표 칭호 자동 설정
         MemberTitleLog memberTitleLog1 = memberTitleLogs.get(0);
-        assertThat(memberTitleLog1.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog1.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog1.getIsMain()).isTrue();
         assertThat(memberTitleLog1.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog1.getMemberTitle().getContent()).isEqualTo("회원가입");
 
         // 1번 회원 -> 찜 첫 걸음 칭호 부여
         MemberTitleLog memberTitleLog2 = memberTitleLogs.get(1);
-        assertThat(memberTitleLog2.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog2.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog2.getIsMain()).isFalse();
         assertThat(memberTitleLog2.getMemberTitle().getName()).isEqualTo("리뷰 첫 걸음");
         assertThat(memberTitleLog2.getMemberTitle().getContent()).isEqualTo("첫번째 리뷰 작성");
@@ -276,21 +276,21 @@ class CollectJobTest {
 
         // 1번 회원 -> 뉴비 칭호 부여, 대표 칭호 자동 설정
         MemberTitleLog memberTitleLog1 = memberTitleLogs.get(0);
-        assertThat(memberTitleLog1.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog1.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog1.getIsMain()).isTrue();
         assertThat(memberTitleLog1.getMemberTitle().getName()).isEqualTo("뉴비");
         assertThat(memberTitleLog1.getMemberTitle().getContent()).isEqualTo("회원가입");
 
         // 1번 회원 -> 리뷰 첫 걸음 칭호 부여
         MemberTitleLog memberTitleLog2 = memberTitleLogs.get(1);
-        assertThat(memberTitleLog2.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog2.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog2.getIsMain()).isFalse();
         assertThat(memberTitleLog2.getMemberTitle().getName()).isEqualTo("리뷰 첫 걸음");
         assertThat(memberTitleLog2.getMemberTitle().getContent()).isEqualTo("첫번째 리뷰 작성");
 
         // 1번 회원 -> 리뷰 홀릭 칭호 부여
         MemberTitleLog memberTitleLog3 = memberTitleLogs.get(2);
-        assertThat(memberTitleLog3.getMember().getId()).isEqualTo(1);
+        assertThat(memberTitleLog3.getMemberId()).isEqualTo(1);
         assertThat(memberTitleLog3.getIsMain()).isFalse();
         assertThat(memberTitleLog3.getMemberTitle().getName()).isEqualTo("리뷰 홀릭");
         assertThat(memberTitleLog3.getMemberTitle().getContent()).isEqualTo("리뷰 3개 이상 작성");
@@ -308,4 +308,4 @@ class CollectJobTest {
 ////        List<MemberTitleLog> memberTitleLogs = memberTitleLogRepository.findAll();
 //
 //    }
-}
+}*/

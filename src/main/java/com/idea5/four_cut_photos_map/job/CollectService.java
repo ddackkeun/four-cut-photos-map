@@ -29,7 +29,7 @@ public class CollectService {
     // 회원에게 칭호 부여
     @Transactional
     public void addMemberTitle(Member member, MemberTitle memberTitle, Boolean isMain) {
-        memberTitleLogRepository.save(new MemberTitleLog(member, memberTitle, isMain));
+        memberTitleLogRepository.save(new MemberTitleLog(member.getId(), memberTitle, isMain));
     }
 
     // 회원에게 해당 회원칭호를 부여할 수 있는지 여부

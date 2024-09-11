@@ -4,12 +4,9 @@ import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
-import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitle;
-import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
-import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoResponse;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
@@ -35,9 +32,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,8 +45,6 @@ public class ReviewReadServiceImplTest {
     private ReviewRepository reviewRepository;
     @Mock
     private ShopRepository shopRepository;
-    @Mock
-    private MemberTitleLogRepository memberTitleLogRepository;
 
     @Mock
     private ReviewMapper reviewMapper;
@@ -98,6 +93,11 @@ public class ReviewReadServiceImplTest {
 
                 verify(reviewRepository, times(1)).findByIdAndStatus(reviewId, status);
             }
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class FailCase {
 
             @Test
             @DisplayName("해당 id의 리뷰가 존재하지 않음")
@@ -114,12 +114,6 @@ public class ReviewReadServiceImplTest {
                 assertEquals(ErrorCode.REVIEW_NOT_FOUND, exception.getErrorCode());
                 verify(reviewRepository, times(1)).findByIdAndStatus(reviewId, status);
             }
-        }
-
-        @Nested
-        @DisplayName("실패")
-        class FailCase {
-
         }
     }
 
@@ -238,153 +232,68 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("지점 전체 리뷰 조회")
     class GetAllReviewsForShop {
-        private Member member;
-        private Brand brand1;
-        private Brand brand2;
-        private Brand brand3;
-        private Shop shop1;
-        private Shop shop2;
-        private Shop shop3;
-        private Review review1;
-        private Review review2;
-        private Review review3;
-
-        @BeforeEach
-        void setUp() {
-            member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            brand1 = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
-            brand2 = Brand.builder().id(2L).brandName("하루필름").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_2.jpg").build();
-            brand3 = Brand.builder().id(3L).brandName("포토이즘").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_3.jpg").build();
-            shop1 = Shop.builder().id(1L).brand(brand1).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            shop2 = Shop.builder().id(2L).brand(brand2).placeName("하루필름 연트럴파크점").address("서울 마포구 양화로23길 30, 1층 (동교동)").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            shop3 = Shop.builder().id(3L).brand(brand3).placeName("포토이즘박스 광운대점").address("서울 노원구 석계로 95 성북빌딩").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-            review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(5).content("shop1 작성한 리뷰 내용-1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
-            review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(4).content("shop1 작성한 리뷰 내용-2").purity(PurityScore.UNSELECTED).retouch(RetouchScore.UNSELECTED).item(ItemScore.UNSELECTED).build();
-            review3 = Review.builder().id(3L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop2).starRating(3).content("shop2 작성한 리뷰 내용-1").purity(PurityScore.BAD).retouch(RetouchScore.BAD).item(ItemScore.BAD).build();
-        }
-
         @Nested
         @DisplayName("성공")
         class SuccessCase {
             @Test
-            @DisplayName("shopId로 지점 전체 리뷰 조회 - 회원의 mainMemberTitle 없는 경우")
-            void getAllReviewsForShopSuccess1() {
+            @DisplayName("shopId를 가진 지점이 있고 리뷰가 있을 때 지점 전체 리뷰 반환")
+            void getAllReviewsForShop_Success1() {
                 // given
                 Long shopId = 1L;
+                Shop shop = Shop.builder().id(shopId).placeName("placeName").address("address").build();
+                Member member1 = Member.builder().id(1L).kakaoId(1000L).nickname("member1").mainTitleName("뉴비").build();
+                Member member2 = Member.builder().id(2L).kakaoId(2000L).nickname("member2").mainTitleName(null).build();
+                Review review1 = Review.builder().id(1L).member(member1).shop(shop).starRating(5).content("내용1").build();
+                Review review2 = Review.builder().id(2L).member(member2).shop(shop).starRating(4).content("내용2").build();
                 List<Review> reviews = Arrays.asList(review1, review2);
-                String mainMemberTitleName = "";
-                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
-                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainTitleName(mainMemberTitleName).build();
+                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).starRating(review1.getStarRating()).content(review1.getContent()).build();
+                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).starRating(review2.getStarRating()).content(review2.getContent()).build();
+                MemberResponse memberResponse1 = MemberResponse.builder().id(member1.getId()).nickname(member1.getNickname()).mainTitleName("뉴비").build();
+                MemberResponse memberResponse2 = MemberResponse.builder().id(member2.getId()).nickname(member2.getNickname()).mainTitleName("").build();
 
                 // when
-                when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop1));
-                when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
-                when(reviewMapper.toResponse(review1)).thenReturn(reviewResponse1);
-                when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
-                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
+                given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
+                given(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).willReturn(reviews);
+                given(reviewMapper.toResponse(review1)).willReturn(reviewResponse1);
+                given(reviewMapper.toResponse(review2)).willReturn(reviewResponse2);
+                given(memberMapper.toResponse(member1, "뉴비")).willReturn(memberResponse1);
+                given(memberMapper.toResponse(member2, "")).willReturn(memberResponse2);
 
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
+                // when
+                List<ShopReviewResponse> response = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
                 // then
-                assertEquals(result.size(), reviews.size());
-
-                assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
-                assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
-                assertEquals(result.get(0).getMemberInfo().getId(), member.getId());
-                assertEquals(result.get(0).getMemberInfo().getNickname(), member.getNickname());
-                assertEquals(result.get(0).getMemberInfo().getMainTitleName(), mainMemberTitleName);
-
-                assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
-                assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
-                assertEquals(result.get(1).getMemberInfo().getId(), member.getId());
-                assertEquals(result.get(1).getMemberInfo().getNickname(), member.getNickname());
-                assertEquals(result.get(1).getMemberInfo().getMainTitleName(), mainMemberTitleName);
+                assertEquals(reviews.size(), response.size());
+                assertEquals(reviewResponse1, response.get(0).getReviewInfo());
+                assertEquals(memberResponse1, response.get(0).getMemberInfo());
+                assertEquals(reviewResponse2, response.get(1).getReviewInfo());
+                assertEquals(memberResponse2, response.get(1).getMemberInfo());
+                verify(shopRepository).findById(shopId);
+                verify(reviewRepository).findAllByShopIdOrderByCreateDateDesc(shopId);
+                verify(reviewMapper, times(reviews.size())).toResponse(any());
+                verify(memberMapper, times(reviews.size())).toResponse(any(), anyString());
             }
 
             @Test
-            @DisplayName("shopId로 지점 전체 리뷰 조회 - 회원의 mainMemberTitle 존재하는 경우")
-            void getAllReviewsForShopSuccess2() {
+            @DisplayName("shopId를 가진 지점이 있고 리뷰가 없을 때 빈 리뷰 리스트 반환")
+            void getAllReviewsForShop_Success2() {
                 // given
                 Long shopId = 1L;
-                List<Review> reviews = Arrays.asList(review1, review2);
-                MemberTitle memberTitle = MemberTitle.builder().name("칭호명").standard("획득방법").content("설명").colorImageUrl("컬러 이미지").bwImageUrl("흑백 이미지").build();
-                MemberTitleLog memberTitleLog = MemberTitleLog.builder().member(member).memberTitle(memberTitle).isMain(true).build();
-                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).createDate(review1.getCreateDate().toString()).modifyDate(review1.getModifyDate().toString()).starRating(review1.getStarRating()).content(review1.getContent()).purity(review1.getPurity()).retouch(review1.getRetouch()).item(review1.getItem()).build();
-                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).createDate(review2.getCreateDate().toString()).modifyDate(review2.getModifyDate().toString()).starRating(review2.getStarRating()).content(review2.getContent()).purity(review2.getPurity()).retouch(review2.getRetouch()).item(review2.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainTitleName(memberTitle.getName()).build();
+                Shop shop = Shop.builder().id(shopId).placeName("placeName").address("address").build();
+
+                given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
+                given(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).willReturn(Collections.emptyList());
 
                 // when
-                when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop1));
-                when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.of(memberTitleLog));
-                when(reviewMapper.toResponse(review1)).thenReturn(reviewResponse1);
-                when(reviewMapper.toResponse(review2)).thenReturn(reviewResponse2);
-                when(memberMapper.toResponse(member, memberTitle.getName())).thenReturn(memberResponse);
-
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
+                List<ShopReviewResponse> response = reviewReadServiceImpl.getAllReviewsForShop(shopId);
 
                 // then
-                assertEquals(result.size(), reviews.size());
+                assertEquals(0, response.size());
+                verify(shopRepository).findById(shopId);
+                verify(reviewRepository).findAllByShopIdOrderByCreateDateDesc(shopId);
+                verify(reviewMapper, never()).toResponse(any());
+                verify(memberMapper, never()).toResponse(any(), anyString());
 
-                assertEquals(result.get(0).getReviewInfo().getId(), review1.getId());
-                assertEquals(result.get(0).getReviewInfo().getContent(), review1.getContent());
-                assertEquals(result.get(0).getMemberInfo().getId(), member.getId());
-                assertEquals(result.get(0).getMemberInfo().getNickname(), member.getNickname());
-                assertEquals(result.get(0).getMemberInfo().getMainTitleName(), memberTitle.getName());
-
-                assertEquals(result.get(1).getReviewInfo().getId(), review2.getId());
-                assertEquals(result.get(1).getReviewInfo().getContent(), review2.getContent());
-                assertEquals(result.get(1).getMemberInfo().getId(), member.getId());
-                assertEquals(result.get(1).getMemberInfo().getNickname(), member.getNickname());
-                assertEquals(result.get(1).getMemberInfo().getMainTitleName(), memberTitle.getName());
-            }
-
-            @Test
-            @DisplayName("shop2 리뷰 조회")
-            void getAllReviewsForShopSuccess3() {
-                // given
-                Long shopId = 2L;
-                List<Review> reviews = Arrays.asList(review3);
-                String mainMemberTitleName = "";
-                ReviewResponse reviewResponse = ReviewResponse.builder().id(review3.getId()).createDate(review3.getCreateDate().toString()).modifyDate(review3.getModifyDate().toString()).starRating(review3.getStarRating()).content(review3.getContent()).purity(review3.getPurity()).retouch(review3.getRetouch()).item(review3.getItem()).build();
-                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainTitleName(mainMemberTitleName).build();
-
-                // when
-                when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop2));
-                when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
-                when(reviewMapper.toResponse(review3)).thenReturn(reviewResponse);
-                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
-
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
-
-                // then
-                assertEquals(result.size(), reviews.size());
-
-                assertEquals(result.get(0).getReviewInfo().getId(), review3.getId());
-                assertEquals(result.get(0).getReviewInfo().getContent(), review3.getContent());
-                assertEquals(result.get(0).getMemberInfo().getId(), member.getId());
-                assertEquals(result.get(0).getMemberInfo().getNickname(), member.getNickname());
-                assertEquals(result.get(0).getMemberInfo().getMainTitleName(), mainMemberTitleName);
-            }
-
-            @Test
-            @DisplayName("shopId 해당하는 리뷰 없음")
-            void getAllReviewsForShopSuccess4() {
-                // given
-                Long shopId = 3L;
-                List<Review> reviews = new ArrayList<>();
-
-                // when
-                when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop3));
-                when(reviewRepository.findAllByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getAllReviewsForShop(shopId);
-
-                // then
-                assertEquals(0, result.size());
             }
         }
 
@@ -412,98 +321,61 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("최신 리뷰 3건 가져오기")
     class GetRecentReviewsForShop {
-        private Member member;
-        private Brand brand;
-        private Shop shop;
-
-        @BeforeEach
-        void setUp() {
-            member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
-            shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-        }
-
-        List<Review> createReviews(int n) {
-            ArrayList<Review> reviews = new ArrayList<>();
-            for(int i=1; i<=n; i++) {
-                Review review = Review.builder().id((long)i).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(i).content("리뷰 " + i + "번 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
-                reviews.add(review);
-            }
-
-            return reviews;
-        }
-
-        List<ReviewResponse> createReviewResponses(List<Review> reviews) {
-            return reviews.stream()
-                    .map(review -> {
-                        return ReviewResponse.builder()
-                                .id(review.getId())
-                                .createDate(review.getCreateDate().toString())
-                                .modifyDate(review.getModifyDate().toString())
-                                .starRating(review.getStarRating())
-                                .content(review.getContent())
-                                .purity(review.getPurity())
-                                .retouch(review.getRetouch())
-                                .item(review.getItem())
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-        }
-
         @Nested
         @DisplayName("성공")
         class SuccessCase {
             @Test
-            @DisplayName("상점의 작성일 기준 최신 리뷰 3건 조회")
-            void getRecentReviewsForShopSuccess1() {
+            @DisplayName("상점이 존재하고 상점 리뷰가 존재할 때 작성일 기준 최신 리뷰 3건 반환")
+            void getRecentReviewsForShop_Success1() {
                 // given
                 Long shopId = 1L;
-                int reviewCnt = 3;
-                String mainMemberTitleName = "";
-                List<Review> reviews = createReviews(reviewCnt);
-                List<ReviewResponse> reviewResponses = createReviewResponses(reviews);
-                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainTitleName(mainMemberTitleName).build();
+                Shop shop = Shop.builder().id(shopId).build();
+                Member member1 = Member.builder().id(1L).mainTitleName("뉴비").build();
+                Member member2 = Member.builder().id(2L).mainTitleName(null).build();
+                Review review1 = Review.builder().id(1L).shop(shop).member(member1).build();
+                Review review2 = Review.builder().id(1L).shop(shop).member(member2).build();
+                List<Review> reviews = List.of(review1, review2);
+                ReviewResponse reviewResponse1 = ReviewResponse.builder().id(review1.getId()).build();
+                ReviewResponse reviewResponse2 = ReviewResponse.builder().id(review2.getId()).build();
+                MemberResponse memberResponse1 = MemberResponse.builder().id(member1.getId()).build();
+                MemberResponse memberResponse2 = MemberResponse.builder().id(member2.getId()).build();
+
+
+                given(reviewRepository.findTop3ByShopIdOrderByCreateDateDesc(shopId)).willReturn(reviews);
+                given(reviewMapper.toResponse(review1)).willReturn(reviewResponse1);
+                given(reviewMapper.toResponse(review2)).willReturn(reviewResponse2);
+                given(memberMapper.toResponse(member1, "뉴비")).willReturn(memberResponse1);
+                given(memberMapper.toResponse(member2, "")).willReturn(memberResponse2);
 
                 // when
-                when(reviewRepository.findTop3ByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
-                when(reviewMapper.toResponse(reviews.get(0))).thenReturn(reviewResponses.get(0));
-                when(reviewMapper.toResponse(reviews.get(1))).thenReturn(reviewResponses.get(1));
-                when(reviewMapper.toResponse(reviews.get(2))).thenReturn(reviewResponses.get(2));
-                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
-
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
+                List<ShopReviewResponse> response = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
 
                 // then
-                assertEquals(result.size(), reviewCnt);
-                assertEquals(result.get(0).getReviewInfo().getId(), reviews.get(0).getId());
-                assertEquals(result.get(1).getReviewInfo().getId(), reviews.get(1).getId());
-                assertEquals(result.get(2).getReviewInfo().getId(), reviews.get(2).getId());
+                assertEquals(reviews.size(), response.size());
+                assertEquals(reviewResponse1, response.get(0).getReviewInfo());
+                assertEquals(memberResponse1, response.get(0).getMemberInfo());
+                assertEquals(reviewResponse2, response.get(1).getReviewInfo());
+                assertEquals(memberResponse2, response.get(1).getMemberInfo());
+                verify(reviewRepository).findTop3ByShopIdOrderByCreateDateDesc(shopId);
+                verify(reviewMapper, times(2)).toResponse(any());
+                verify(memberMapper, times(2)).toResponse(any(), anyString());
             }
 
             @Test
-            @DisplayName("상점 리뷰 3건 이하일 때 리뷰 조회")
-            void getRecentReviewsForShopSuccess2() {
+            @DisplayName("상점이 존재하고 상점 리뷰가 존재하지 않을 때 빈 리뷰 리스트를 반환")
+            void getRecentReviewsForShop_Success2() {
                 Long shopId = 1L;
-                int reviewCnt = 2;
-                String mainMemberTitleName = "";
-                List<Review> reviews = createReviews(reviewCnt);
-                List<ReviewResponse> reviewResponses = createReviewResponses(reviews);
-                MemberResponse memberResponse = MemberResponse.builder().id(member.getId()).nickname(member.getNickname()).mainTitleName(mainMemberTitleName).build();
+
+                given(reviewRepository.findTop3ByShopIdOrderByCreateDateDesc(shopId)).willReturn(Collections.emptyList());
 
                 // when
-                when(reviewRepository.findTop3ByShopIdOrderByCreateDateDesc(shopId)).thenReturn(reviews);
-                when(memberTitleLogRepository.findByMemberAndIsMainTrue(member)).thenReturn(Optional.empty());
-                when(reviewMapper.toResponse(reviews.get(0))).thenReturn(reviewResponses.get(0));
-                when(reviewMapper.toResponse(reviews.get(1))).thenReturn(reviewResponses.get(1));
-                when(memberMapper.toResponse(member, mainMemberTitleName)).thenReturn(memberResponse);
-
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
+                List<ShopReviewResponse> response = reviewReadServiceImpl.getRecentReviewsForShop(shopId);
 
                 // then
-                assertEquals(result.size(), reviewCnt);
-                assertEquals(result.get(0).getReviewInfo().getId(), reviews.get(0).getId());
-                assertEquals(result.get(1).getReviewInfo().getId(), reviews.get(1).getId());
+                assertEquals(0, response.size());
+                verify(reviewRepository).findTop3ByShopIdOrderByCreateDateDesc(shopId);
+                verify(reviewMapper, never()).toResponse(any());
+                verify(memberMapper, never()).toResponse(any(), anyString());
             }
         }
     }
@@ -511,75 +383,54 @@ public class ReviewReadServiceImplTest {
     @Nested
     @DisplayName("상점의 리뷰 정보 가져오기")
     class GetShopReviewInfo {
-        private Member member;
-        private Shop shop;
-
-        List<Review> createReviews(int n) {
-            ArrayList<Review> reviews = new ArrayList<>();
-            Random random = new Random();
-
-            for(int i=1; i<=n; i++) {
-                int startRating = random.nextInt(5) + 1;
-                Review review = Review.builder().id((long)i).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop).starRating(startRating).content("리뷰 " + i + "번 내용").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).build();
-                reviews.add(review);
-            }
-            return reviews;
-        }
-
-        @BeforeEach
-        void setUp() {
-            Brand brand = Brand.builder().id(1L).brandName("인생네컷").filePath("https://d18tllc1sxg8cp.cloudfront.net/brand_image/brand_1.jpg").build();
-            member = Member.builder().id(1L).kakaoId(1000L).nickname("user1").build();
-            shop = Shop.builder().id(1L).brand(brand).placeName("인생네컷망리단길점").address("서울 마포구 포은로 109-1").favoriteCnt(0).reviewCnt(0).starRatingAvg(0.0).build();
-        }
-
         @Nested
         @DisplayName("성공")
         class SuccessCase {
             @Test
-            @DisplayName("shopId 해당하는 상점 정보 가져오기")
-            void getShopReviewInfoSuccess1() {
+            @DisplayName("상점에 리뷰가 있을 때 상점의 리뷰 정보 반환")
+            void getShopReviewInfo_Success1() {
                 // given
                 Long shopId = 1L;
-                int reviewCount = 10;
-                List<Review> reviews = createReviews(reviewCount);
-                double starRatingAvg = reviews.stream()
-                        .mapToDouble(Review::getStarRating)
-                        .average()
-                        .orElse(0.0);
-                starRatingAvg = Math.round(starRatingAvg * 10) / 10.0;
+                Shop shop = Shop.builder().id(shopId).build();
+                Review review1 = Review.builder().id(1L).shop(shop).starRating(3).build();
+                Review review2 = Review.builder().id(2L).shop(shop).starRating(3).build();
+                Review review3 = Review.builder().id(3L).shop(shop).starRating(4).build();
+                List<Review> reviews = List.of(review1, review2, review3);
+
+                given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
+                given(reviewRepository.findAllByShopId(shopId)).willReturn(reviews);
 
                 // when
-                when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
-                when(reviewRepository.findAllByShopId(shopId)).thenReturn(reviews);
-
-                ShopReviewInfoDto result = reviewReadServiceImpl.getShopReviewInfo(shopId);
+                ShopReviewInfoResponse response = reviewReadServiceImpl.getShopReviewInfo(shopId);
 
                 // then
-                assertEquals(result.getShopId(), shopId);
-                assertEquals(result.getReviewCnt(), reviewCount);
-                assertEquals(result.getStarRatingAvg(), starRatingAvg);
+                assertEquals(shopId, response.getShopId());
+                assertEquals(reviews.size(), response.getReviewCnt());
+                assertEquals(3.3, response.getStarRatingAvg());
+                verify(shopRepository).findById(shopId);
+                verify(reviewRepository).findAllByShopId(shopId);
             }
 
             @Test
             @DisplayName("상점의 리뷰가 없을 때 별점 평균 처리")
-            void getShopReviewInfoSuccess2() {
+            void getShopReviewInfo_Success2() {
                 // given
                 Long shopId = 1L;
-                int reviewCount = 0;
-                double starRatingAvg = 0.0;
-                List<Review> reviews = new ArrayList<>();
+                Shop shop = Shop.builder().id(shopId).build();
+                List<Review> reviews = List.of();
+
+                given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
+                given(reviewRepository.findAllByShopId(shopId)).willReturn(reviews);
 
                 // when
-                when(shopRepository.findById(shopId)).thenReturn(Optional.of(shop));
-                when(reviewRepository.findAllByShopId(shopId)).thenReturn(reviews);
-
-                ShopReviewInfoDto result = reviewReadServiceImpl.getShopReviewInfo(shopId);
+                ShopReviewInfoResponse response = reviewReadServiceImpl.getShopReviewInfo(shopId);
 
                 // then
-                assertEquals(result.getShopId(), shopId);
-                assertEquals(result.getReviewCnt(), reviewCount);
-                assertEquals(result.getStarRatingAvg(), starRatingAvg);
+                assertEquals(shopId, response.getShopId());
+                assertEquals(0, response.getReviewCnt());
+                assertEquals(0.0, response.getStarRatingAvg());
+                verify(shopRepository).findById(shopId);
+                verify(reviewRepository).findAllByShopId(shopId);
             }
         }
 
@@ -587,20 +438,18 @@ public class ReviewReadServiceImplTest {
         @DisplayName("실패")
         class FailCase {
             @Test
-            @DisplayName("shopId 해당하는 상점이 존재하지 않는 경우")
-            void getShopReviewInfoFail1() {
+            @DisplayName("shopId 해당하는 상점이 존재하지 않는 경우 예외 발생")
+            void getShopReviewInfo_Fail1() {
                 // given
                 Long shopId = 1L;
-                BusinessException exception = new BusinessException(ErrorCode.SHOP_NOT_FOUND);
 
-                // when
-                when(shopRepository.findById(shopId)).thenThrow(exception);
+                given(shopRepository.findById(shopId)).willReturn(Optional.empty());
 
-                // then
-                BusinessException resultException = assertThrows(exception.getClass(), () -> reviewReadServiceImpl.getShopReviewInfo(shopId));
-
-                assertEquals(resultException.getErrorCode(), exception.getErrorCode());
-                assertEquals(resultException.getMessage(), exception.getMessage());
+                // when & then
+                BusinessException response = assertThrows(BusinessException.class, () -> reviewReadServiceImpl.getShopReviewInfo(shopId));
+                assertEquals(ErrorCode.SHOP_NOT_FOUND, response.getErrorCode());
+                verify(shopRepository).findById(anyLong());
+                verify(reviewRepository, never()).findAllByShopId(anyLong());
             }
         }
     }

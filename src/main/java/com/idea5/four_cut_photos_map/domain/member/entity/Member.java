@@ -59,4 +59,8 @@ public class Member extends BaseEntity {
     public void updateStatus(MemberStatus status) {
         this.status = status;
     }
+
+    public void updateMainTitle(String mainTitleName) {
+        this.mainTitleName = mainTitleName;
+    }
 }

@@ -1,16 +1,14 @@
 package com.idea5.four_cut_photos_map.domain.review.service;
 
+import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
-import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
-import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoDto;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewInfoResponse;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.mapper.ReviewMapper;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
-import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.mapper.ShopMapper;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,7 +28,6 @@ import java.util.stream.Collectors;
 public class ReviewReadServiceImpl implements ReviewReadService {
     private final ReviewRepository reviewRepository;
     private final ShopRepository shopRepository;
-    private final MemberTitleLogRepository memberTitleLogRepository;
 
     private final ReviewMapper reviewMapper;
     private final MemberMapper memberMapper;
@@ -74,8 +70,8 @@ public class ReviewReadServiceImpl implements ReviewReadService {
     }
 
     @Override
-    public ShopReviewInfoDto getShopReviewInfo(Long shopId) {
-        Shop shop = shopRepository.findById(shopId).orElseThrow(() -> new BusinessException(ErrorCode.SHOP_NOT_FOUND));
+    public ShopReviewInfoResponse getShopReviewInfo(Long shopId) {
+        shopRepository.findById(shopId).orElseThrow(() -> new BusinessException(ErrorCode.SHOP_NOT_FOUND));
 
         List<Review> reviews = reviewRepository.findAllByShopId(shopId);
         int reviewCount = reviews.size();
@@ -86,18 +82,17 @@ public class ReviewReadServiceImpl implements ReviewReadService {
                 .orElse(0.0);
         starRatingAvg = Math.round(starRatingAvg * 10) / 10.0;
 
-        return new ShopReviewInfoDto(shopId, reviewCount, starRatingAvg);
+        return new ShopReviewInfoResponse(shopId, reviewCount, starRatingAvg);
     }
 
     private List<ShopReviewResponse> createShopReviewResponse(List<Review> reviews) {
         return reviews.stream()
                 .map(review -> {
-                    MemberTitleLog memberTitleLog = memberTitleLogRepository.findByMemberAndIsMainTrue(review.getMember()).orElse(null);
-                    String mainMemberTitleName = memberTitleLog == null ? "" : memberTitleLog.getMemberTitle().getName();
-
+                    Member member = review.getMember();
+                    String mainMemberTitleName = member.getMainTitleName() == null ? "" : member.getMainTitleName();
                     return ShopReviewResponse.builder()
                             .reviewInfo(reviewMapper.toResponse(review))
-                            .memberInfo(memberMapper.toResponse(review.getMember(), mainMemberTitleName))
+                            .memberInfo(memberMapper.toResponse(member, mainMemberTitleName))
                             .build();
                 })
                 .collect(Collectors.toList());

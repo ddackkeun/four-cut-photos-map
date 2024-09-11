@@ -10,7 +10,7 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ShopReviewInfoDto {
+public class ShopReviewInfoResponse {
     private Long shopId;
     private int reviewCnt;
     private double starRatingAvg;
