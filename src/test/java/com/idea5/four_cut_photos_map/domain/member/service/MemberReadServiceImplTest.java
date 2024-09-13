@@ -4,6 +4,7 @@ import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoRespon
 import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
+import com.idea5.four_cut_photos_map.domain.member.entity.NicknameStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
@@ -66,8 +67,8 @@ class MemberReadServiceImplTest {
     }
 
     @Test
-    @DisplayName("현재 닉네임과 동일한 경우 true false 응답 반환")
-    void checkNickname_NicknameIsSameAsCurrent_ShouldReturnTrueFalse() {
+    @DisplayName("확인하는 닉네임이 현재 유저의 닉네임과 동일한 경우 NicknameStatus.USED 반환")
+    void checkNickname_NicknameIsSameAsCurrent_ShouldReturnStatusUsed() {
         // given
         Long memberId = 1L;
         String currentNickname = "currentNickname";
@@ -79,15 +80,14 @@ class MemberReadServiceImplTest {
         NicknameCheckResponse response = memberReadService.checkNickname(memberId, currentNickname);
 
         // then
-        assertTrue(response.isSameAsCurrent());
-        assertFalse(response.isUsed());
+        assertEquals(NicknameStatus.USED.getDescription(), response.getStatus());
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
         verify(memberRepository, never()).existsByNickname(currentNickname);
     }
 
     @Test
-    @DisplayName("변경하려는 닉네임이 이미 사용중인 닉네임일 경우 false true 반환")
-    void checkNickname_NicknameAlreadyExists_ShouldReturnFalseTrue() {
+    @DisplayName("확인하는 닉네임이 다른 유저가 사용중인 닉네임일 경우 NicknameStatus.DUPLICATED 반환")
+    void checkNickname_NicknameAlreadyExists_ShouldReturnStatusDuplicated() {
         // given
         Long memberId = 1L;
         String currentNickname = "currentNickname";
@@ -101,15 +101,14 @@ class MemberReadServiceImplTest {
         NicknameCheckResponse response = memberReadService.checkNickname(memberId, existingNickname);
 
         // then
-        assertFalse(response.isSameAsCurrent());
-        assertTrue(response.isUsed());
+        assertEquals(NicknameStatus.DUPLICATED.getDescription(), response.getStatus());
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
         verify(memberRepository).existsByNickname(existingNickname);
     }
 
     @Test
-    @DisplayName("현재 닉네임이 아니고 다른 유저가 사용하지 않는 닉네임일 경우 false 응답 반환")
-    void checkNickname_NicknameIsNotSameAsCurrentAndNotUsed_ShouldReturnFalseFalse() {
+    @DisplayName("현재 닉네임이 아니고 다른 유저가 사용하지 않는 닉네임일 경우 NicknameStatus.AVAILABLE 반환")
+    void checkNickname_NicknameIsNotSameAsCurrentAndNotUsed_ShouldReturnStatusAvailable() {
         // given
         Long memberId = 1L;
         String currentNickname = "currentNickname";
@@ -123,8 +122,7 @@ class MemberReadServiceImplTest {
         NicknameCheckResponse response = memberReadService.checkNickname(memberId, newNickname);
 
         // then
-        assertFalse(response.isSameAsCurrent());
-        assertFalse(response.isUsed());
+        assertEquals(NicknameStatus.AVAILABLE.getDescription(), response.getStatus());
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
         verify(memberRepository).existsByNickname(newNickname);
     }

@@ -131,10 +131,10 @@ class MemberRequestServiceImplTest {
         // given
         KakaoUserInfoParam kakaoUserInfo = KakaoUserInfoParam.builder().id(12345L).nickname("nickname").build();
         KakaoTokenResp kakaoToken = KakaoTokenResp.builder().accessToken("access token").expiresIn(3600).refreshToken("refresh token").refreshTokenExpiresIn(3600).build();
-        Member newMember = Member.builder().id(1L).kakaoId(kakaoUserInfo.getId()).nickname(kakaoUserInfo.getNickname() + "1234").kakaoRefreshToken(kakaoToken.getRefreshToken()).status(MemberStatus.REGISTERED).build();
+        Member newMember = Member.builder().kakaoId(kakaoUserInfo.getId()).nickname(kakaoUserInfo.getNickname() + "1234").kakaoRefreshToken(kakaoToken.getRefreshToken()).status(MemberStatus.REGISTERED).build();
 
-        when(memberRepository.existsByNickname(anyString())).thenReturn(false);
-        when(memberRepository.save(any(Member.class))).thenReturn(newMember);
+        given(memberRepository.existsByNickname(anyString())).willReturn(false);
+        given(memberRepository.save(any(Member.class))).willReturn(newMember);
 
         // when
         Member response = memberRequestService.register(kakaoUserInfo, kakaoToken);
@@ -174,14 +174,12 @@ class MemberRequestServiceImplTest {
         Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
 
         given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
-        given(memberRepository.save(any(Member.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(memberRepository.save(existingMember)).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        String response = memberRequestService.updateNickname(memberId, newNickname);
+        memberRequestService.updateNickname(memberId, newNickname);
 
         // then
-        assertNotEquals(currentNickname, response);
-        assertEquals(newNickname, response);
         assertEquals(newNickname, existingMember.getNickname());
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
         verify(memberRepository).save(existingMember);
@@ -197,12 +195,12 @@ class MemberRequestServiceImplTest {
         Member existingMember = Member.builder().id(memberId).nickname(currentNickname).status(MemberStatus.REGISTERED).build();
 
         given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(existingMember));
-        given(memberRepository.save(any(Member.class))).willThrow(new DataIntegrityViolationException("Duplicate entry for nickname"));
+        given(memberRepository.save(existingMember)).willThrow(new DataIntegrityViolationException("Duplicate entry for nickname"));
 
         // when & then
         assertThrows(DataIntegrityViolationException.class, () -> memberRequestService.updateNickname(memberId, duplicateNickname));
         verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
-        verify(memberRepository).save(any(Member.class));
+        verify(memberRepository).save(existingMember);
     }
 
     @Test

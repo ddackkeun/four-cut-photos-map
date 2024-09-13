@@ -7,6 +7,7 @@ import com.idea5.four_cut_photos_map.domain.favorite.repository.FavoriteReposito
 import com.idea5.four_cut_photos_map.domain.member.dto.response.LoginResponse;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
+import com.idea5.four_cut_photos_map.domain.member.entity.MemberFactory;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
@@ -61,9 +62,7 @@ public class MemberRequestServiceImpl implements MemberRequestService {
     @Override
     public Member register(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken) {
         String nickname = generateUniqueNickname(kakaoUserInfo.getNickname());
-        Member member = Member.builder().kakaoId(kakaoUserInfo.getId()).nickname(nickname).kakaoRefreshToken(kakaoToken.getRefreshToken()).build();
-        member.updateStatus(MemberStatus.REGISTERED);
-
+        Member member = MemberFactory.fromKakaoUser(kakaoUserInfo, kakaoToken, nickname, MemberStatus.REGISTERED);
         return memberRepository.save(member);
     }
 
@@ -79,14 +78,11 @@ public class MemberRequestServiceImpl implements MemberRequestService {
 
     @Transactional
     @Override
-    public String updateNickname(Long id, String nickname) {
+    public void updateNickname(Long id, String nickname) {
         Member member = memberRepository.findByIdAndStatus(id, MemberStatus.REGISTERED)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
         member.updateNickname(nickname);
-        Member updatedMember = memberRepository.save(member);
-
-        return updatedMember.getNickname();
+        memberRepository.save(member);
     }
 
     @Transactional

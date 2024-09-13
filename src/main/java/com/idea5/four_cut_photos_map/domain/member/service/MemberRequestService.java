@@ -12,7 +12,7 @@ public interface MemberRequestService {
 
     String generateUniqueNickname(String nickname);
 
-    String updateNickname(Long id, String nickname);
+    void updateNickname(Long id, String nickname);
 
     void deleteMember(Long memberId);
 }

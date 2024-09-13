@@ -5,6 +5,7 @@ import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberInfoRespon
 import com.idea5.four_cut_photos_map.domain.member.dto.response.NicknameCheckResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
+import com.idea5.four_cut_photos_map.domain.member.entity.NicknameStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
@@ -39,13 +40,10 @@ public class MemberReadServiceImpl implements MemberReadService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (member.getNickname().equals(nickname)) {
-            return new NicknameCheckResponse(true, false);
+            return new NicknameCheckResponse(member.getNickname(), nickname, NicknameStatus.USED.getDescription());
         }
 
-        if (memberRepository.existsByNickname(nickname)) {
-            return new NicknameCheckResponse(false, true);
-        }
-
-        return new NicknameCheckResponse(false, false);
+        NicknameStatus status = memberRepository.existsByNickname(nickname) ? NicknameStatus.DUPLICATED : NicknameStatus.AVAILABLE;
+        return new NicknameCheckResponse(member.getNickname(), nickname, status.getDescription());
     }
 }
