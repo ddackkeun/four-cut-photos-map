@@ -16,6 +16,7 @@ import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -134,8 +135,8 @@ public class ShopController {
         Shop dbShop = shopService.findById(id);
         ResponseShopDetail shopDetailDto = shopService.setResponseDto(dbShop, userLat, userLng);
 
-        List<ShopReviewResponse> recentReviewsForShop = reviewReadService.getRecentReviewsForShop(id);
-        shopDetailDto.setRecentReviews(recentReviewsForShop);
+        List<ShopReviewResponse> recentShopReviews = reviewReadService.getShopReviews(id, null, 5);
+        shopDetailDto.setRecentReviews(recentShopReviews);
 
         if (memberContext != null) {
             Favorite favorite = favoriteService.findByShopIdAndMemberId(shopDetailDto.getId(), memberContext.getId());
@@ -147,4 +148,16 @@ public class ShopController {
 
         return ResponseEntity.ok(shopDetailDto);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{shop-id}/reviews")
+    public ResponseEntity<List<ShopReviewResponse>> getShopReviews(
+            @PathVariable("shop-id") Long shopId,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<ShopReviewResponse> response = reviewReadService.getShopReviews(shopId, lastId, size);
+        return ResponseEntity.ok(response);
+    }
+
 }

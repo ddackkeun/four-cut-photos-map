@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.usecase;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
@@ -37,7 +38,8 @@ public class WriteShopReviewUseCase {
     private final ReviewPhotoMapper reviewPhotoMapper;
 
 
-    /**
+    */
+/**
      * 상점에 리뷰를 작성하는 로직
      * 1. shopId 통해 상점 검색, memberId를 통해 사용자 검색
      * - 상점 혹은 사용자가 없으면 예외 발생
@@ -45,7 +47,8 @@ public class WriteShopReviewUseCase {
      * 3. 요청의 이미지를 S3 버킷에 저장
      * 4. S3 저장에 성공한 이미지, shopId, reviewId 통해 ReviewPhoto 생성
      * 5. 상점 리뷰 개수 및 평점 등 집계 갱신
-     */
+     *//*
+
     @Transactional(readOnly = false)
     public void execute(long shopId, long memberId, ReviewRequest request, List<MultipartFile> files) {
         Shop shop = shopReadService.getShopWithThrow(shopId);
@@ -66,3 +69,4 @@ public class WriteShopReviewUseCase {
         shopRequestService.updateReviewInfo(shop);
     }
 }
+*/

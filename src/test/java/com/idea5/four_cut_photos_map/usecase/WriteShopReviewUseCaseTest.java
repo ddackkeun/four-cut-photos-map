@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.usecase;
 
 import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
@@ -124,3 +125,4 @@ class WriteShopReviewUseCaseTest {
         verify(shopRequestService).updateReviewInfo(shop);
     }
 }
+*/

@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -33,77 +35,51 @@ public class S3Service {
 
     /**
      * 다중 이미지 파일 업로드
-     * 1. 여려 이미지를 반복하여 단일 이미지 파일 업로드 로직 처리
-     * 2. 단일 이미지 업로드 성공시 성공 응답 저장
-     * 3. 단일 이미지 업로드 실행 중 예외 발생시 실패 응답 저장
-     * @param category
+     * 1. 요청 파일리스트 중 이미지 파일만 필터링
+     * 2. 이미지 파일 내용 설정 및 s3 버킷 저장
+     * 3. 저장에 성공한 이미지 응답 생성 및 반환
+     * @param shopId
      * @param files
      * @return List<ImageUploadResponse>
      */
-    public List<ImageUploadResponse> uploadImages(String category, List<MultipartFile> files) {
+    public List<ImageUploadResponse> uploadImages(Long shopId, List<MultipartFile> files) {
+        if (files != null || files.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         return files.stream()
-                .map(file -> uploadFileSafely(category, file))
-                .toList();
-    }
-
-    private ImageUploadResponse uploadFileSafely(String category, MultipartFile file) {
-        try {
-            return uploadImage(category, file);
-        } catch (Exception e) {
-            return new ImageUploadResponse(file.getOriginalFilename(), null, file.getContentType(), file.getSize(), false, e.getMessage());
-        }
-    }
-
-    /**
-     * 단일 이미지 파일 업로드
-     * 1. 이미지 파일이 아닌 경우 예외 발생
-     * 2. 고유 파일명 생성
-     * 3. s3 객체 생성 및 버킷 저장
-     * 4. 업로드 응답 리턴
-     * @param category
-     * @param file
-     * @return ImageUploadResponse
-     */
-    public ImageUploadResponse uploadImage(String category, MultipartFile file) {
-        return Optional.of(file)
-                .filter(this::validImageFile)
-                .map(it -> {
-                    String fileName = generateFileName(category, it);
-                    String url = putS3(fileName, it);
-                    return new ImageUploadResponse(fileName, url, it.getContentType(), it.getSize(), true, null);
+                .filter(this::validateImageFile)
+                .map(file -> {
+                    String uniqueFileName = generateFileName(shopId.toString(), file.getOriginalFilename());
+                    String fileUrl = uploadS3(uniqueFileName, file);
+                    return ImageUploadResponse.from(uniqueFileName, fileUrl, file.getContentType(), file.getSize());
                 })
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_IMAGE_FILE));
+                .collect(Collectors.toList());
     }
 
-    // 이미지 파일인지 검사
-    public boolean validImageFile(MultipartFile file) {
-        if (file.getContentType() == null || !file.getContentType().startsWith(IMAGE_CONTENT_TYPE_PREFIX)) {
-            return false;
-        }
-        return true;
+    public boolean validateImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith(IMAGE_CONTENT_TYPE_PREFIX);
     }
 
-    // 고유한 파일 이름 생성
-    public String generateFileName(String dirName, MultipartFile file) {
-        return dirName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+    public String generateFileName(String dirName, String originalFileName) {
+        return dirName + "/" + UUID.randomUUID() + "_" + originalFileName;
     }
 
-    // S3 객체 생성
-    public String putS3(String fileName, MultipartFile file) {
+    public String uploadS3(String fileName, MultipartFile file) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(file.getContentType());
+        metadata.setContentLength(file.getSize());
+
         try {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType(file.getContentType());
-            metadata.setContentLength(file.getSize());
-
             amazonS3Client.putObject(bucketName, fileName, file.getInputStream(), metadata);
-
-            return getImageUrl(fileName);
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new BusinessException(ErrorCode.IMAGE_UPLOAD_FAILED);
         }
+
+        return getImageUrl(fileName);
     }
 
-    // 이미지 URL 조회
     public String getImageUrl(String fileName) {
         return cloudFrontDomain + "/" + fileName;
     }

@@ -39,20 +39,8 @@ public class Shop extends BaseEntity {
     @Column(nullable = false)
     private Double starRatingAvg;
 
-
-    public Shop(String placeName, String address) {
-        this.placeName = placeName;
-        this.address = address;
-    }
-
-    public Shop(Long id, int favoriteCnt) {
-        super.setId(id);
-        this.favoriteCnt = favoriteCnt;
-    }
-
-    public Shop(Long id, int reviewCnt, double starRatingAvg) {
-        super.setId(id);
-        this.reviewCnt = reviewCnt;
+    public void update(Integer reviewCount, Double starRatingAvg) {
+        this.reviewCnt = reviewCount;
         this.starRatingAvg = starRatingAvg;
     }
 }

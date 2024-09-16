@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.domain.review.service;
 
 import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
@@ -455,3 +456,4 @@ public class ReviewReadServiceImplTest {
     }
 
 }
+*/

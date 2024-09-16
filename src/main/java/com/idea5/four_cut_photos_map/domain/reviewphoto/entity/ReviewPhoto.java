@@ -1,11 +1,11 @@
 package com.idea5.four_cut_photos_map.domain.reviewphoto.entity;
 
+import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.reviewphoto.enums.ReviewPhotoStatus;
 import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
@@ -16,10 +16,10 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@ToString(callSuper = true)
 public class ReviewPhoto extends BaseEntity {
-    @Column(nullable = false)
-    private Long reviewId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id", nullable = false)
+    private Review review;
 
     @Column(nullable = false)
     private Long shopId;
@@ -40,7 +40,11 @@ public class ReviewPhoto extends BaseEntity {
     @Column(length = 50, nullable = false)
     private ReviewPhotoStatus status;
 
-    public void modifyStatus(ReviewPhotoStatus status) {
+    public void setReview(Review review) {
+        this.review = review;
+    }
+
+    public void updateStatus(ReviewPhotoStatus status) {
         this.status = status;
     }
 

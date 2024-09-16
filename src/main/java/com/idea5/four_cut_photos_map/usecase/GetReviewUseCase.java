@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.usecase;
 
 import com.idea5.four_cut_photos_map.domain.member.mapper.MemberMapper;
@@ -21,9 +22,6 @@ import java.util.Optional;
 public class GetReviewUseCase {
     private final ReviewReadService reviewReadService;
     private final ReviewPhotoReadService reviewPhotoReadService;
-    private final ReviewMapper reviewMapper;
-    private final MemberMapper memberMapper;
-    private final ShopMapper shopMapper;
 
     @Transactional(readOnly = true)
     public ReviewDetailResponse execute(Long reviewId) {
@@ -41,3 +39,4 @@ public class GetReviewUseCase {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_REQUEST_DATA));
     }
 }
+*/

@@ -16,6 +16,8 @@ public class ImageUploadResponse {
     private String url;
     private String type;
     private Long size;
-    private Boolean success;
-    private String errorMessage;
+
+    public static ImageUploadResponse from(String fileName, String url, String type, long size) {
+        return new ImageUploadResponse(fileName, url, type, size);
+    }
 }

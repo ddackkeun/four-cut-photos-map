@@ -6,12 +6,15 @@ import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
+import com.idea5.four_cut_photos_map.domain.reviewphoto.entity.ReviewPhoto;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -52,18 +55,33 @@ public class Review extends BaseEntity {
     @Column(length = 50)
     private ItemScore item;
 
-    public void changeStatus(ReviewStatus status) {
+    @OneToMany(mappedBy = "review", cascade = CascadeType.PERSIST)
+    private List<ReviewPhoto> photos = new ArrayList<>();
+
+    public void addPhoto(ReviewPhoto photo) {
+        photos.add(photo);
+        photo.setReview(this);
+    }
+
+    public void removePhoto(ReviewPhoto photo) {
+        photos.remove(photo);
+        photo.setReview(null);
+    }
+
+    public void updateStatus(ReviewStatus status) {
         this.status = status;
     }
 
-    public Review update(ReviewRequest dto) {
-        this.starRating = dto.getStarRating();
-        this.content = dto.getContent();
-        this.purity = PurityScore.valueOf(dto.getPurity());
-        this.retouch = RetouchScore.valueOf(dto.getRetouch());
-        this.item = ItemScore.valueOf(dto.getItem());
+    public void update(int starRating, String content, String purity, String retouch, String item) {
+        PurityScore purityScore = (purity != null) ? PurityScore.valueOf(purity) : null;
+        RetouchScore retouchScore = (retouch != null) ? RetouchScore.valueOf(retouch) : null;
+        ItemScore itemScore = (item != null) ? ItemScore.valueOf(item) : null;
 
-        return this;
+        this.starRating = starRating;
+        this.content = content;
+        this.purity = purityScore;
+        this.retouch = retouchScore;
+        this.item = itemScore;
     }
 
 }

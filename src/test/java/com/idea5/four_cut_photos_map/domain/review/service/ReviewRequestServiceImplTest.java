@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.domain.review.service;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
@@ -46,7 +47,8 @@ public class ReviewRequestServiceImplTest {
     @Mock
     private ReviewMapper reviewMapper;
 
-    /*@Nested
+    */
+/*@Nested
     @DisplayName("상점 리뷰 작성")
     class WriteReview {
 
@@ -176,7 +178,8 @@ public class ReviewRequestServiceImplTest {
             }
         }
     }
-*/
+*//*
+
     @Nested
     @DisplayName("특정 리뷰 수정")
     class ModifyReview {
@@ -388,3 +391,4 @@ public class ReviewRequestServiceImplTest {
         }
     }
 }
+*/

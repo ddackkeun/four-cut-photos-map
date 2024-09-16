@@ -1,6 +1,8 @@
 package com.idea5.four_cut_photos_map.domain.review.controller;
 
 import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewDetailResponse;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
 import com.idea5.four_cut_photos_map.domain.review.service.ReviewRequestService;
 import com.idea5.four_cut_photos_map.domain.shop.service.ShopService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
@@ -17,30 +19,33 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/reviews")
-public class ReviewRequestController {
+public class ReviewController {
+    private final ReviewReadService reviewReadService;
     private final ReviewRequestService reviewRequestService;
     private final ShopService shopService;
 
-    /**
-     * 특정 리뷰 수정
-     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{review-id}")
+    public ResponseEntity<ReviewDetailResponse> getReview(@PathVariable("review-id") Long reviewId) {
+        ReviewDetailResponse response = reviewReadService.getReview(reviewId);
+        return ResponseEntity.ok(response);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @PatchMapping("/{review-id}")
-    public ResponseEntity<String> modifyReview(@PathVariable("review-id") Long reviewId,
-                                               @AuthenticationPrincipal MemberContext memberContext,
-                                               @Valid @RequestBody ReviewRequest request) {
+    public ResponseEntity<Void> modifyReview(
+            @PathVariable("review-id") Long reviewId,
+            @AuthenticationPrincipal MemberContext memberContext,
+            @Valid @RequestBody ReviewRequest request
+    ) {
         Long shopId = reviewRequestService.modifyReview(memberContext.getId(), reviewId, request);
-        log.info("shopId of modified reviews: {}", shopId);
 
         // TODO 추후 배치 등 이용해서 상점 정보 갱신
         shopService.updateReviewInfo(shopId);
 
-        return ResponseEntity.ok("리뷰 수정 완료");
+        return ResponseEntity.ok().build();
     }
 
-    /**
-     * 특정 리뷰 삭제
-     */
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{review-id}")
     public ResponseEntity<String> deleteReview(@PathVariable("review-id") Long reviewId,
@@ -50,7 +55,7 @@ public class ReviewRequestController {
         // TODO 추후 배치 등 이용해서 상점 정보 갱신
         shopService.updateReviewInfo(shopId);
 
-        return ResponseEntity.ok("리뷰 삭제 완료");
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -2,6 +2,7 @@ package com.idea5.four_cut_photos_map.domain.shop.service;
 
 import com.idea5.four_cut_photos_map.domain.favorite.dto.response.FavoriteResponse;
 import com.idea5.four_cut_photos_map.domain.favorite.entity.Favorite;
+import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.*;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
@@ -151,14 +152,12 @@ public class ShopService {
     public void updateReviewInfo(Long shopId) {
         Shop shop = findById(shopId);
 
-        Integer reviewCount = reviewRepository.countByShopId(shopId);
-        Double roundAvgStarRating = Optional.ofNullable(reviewRepository.findAverageStarRatingByShopId(shopId))
+        Integer reviewCount = reviewRepository.countByShopIdAndStatus(shopId, ReviewStatus.REGISTERED);
+        Double roundAvgStarRating = Optional.of(reviewRepository.findAverageStarRatingByShopIdAndStatus(shopId, ReviewStatus.REGISTERED))
                 .map(avgStarRating -> Math.round(avgStarRating * 10) / 10.0)
                 .orElse(0.0);
 
-        shop.setReviewCnt(reviewCount);
-        shop.setStarRatingAvg(roundAvgStarRating);
-        shopRepository.save(shop);
+        shop.update(reviewCount, roundAvgStarRating);
     }
 
 }

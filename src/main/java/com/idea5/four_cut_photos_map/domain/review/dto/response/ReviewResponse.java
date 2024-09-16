@@ -2,13 +2,8 @@ package com.idea5.four_cut_photos_map.domain.review.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
-import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
-import com.idea5.four_cut_photos_map.domain.reviewphoto.dto.response.ReviewPhotoResponse;
+import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import lombok.*;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -18,14 +13,25 @@ import java.util.List;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ReviewResponse {
-    // Review 관련 정보
-    private Long id;                    // 리뷰 번호
-    private String createDate;   // 리뷰 생성 일자
-    private String modifyDate;   // 리뷰 수정 일자
-    private int starRating;            // 별점
-    private String content;             // 내용
-    private PurityScore purity;         // 청결도
-    private RetouchScore retouch;       // 보정
-    private ItemScore item;             // 소품
-    private List<ReviewPhotoResponse> reviewPhotoResponses;
+    private Long id;
+    private String createDate;
+    private String modifyDate;
+    private int starRating;
+    private String content;
+    private String purity;
+    private String retouch;
+    private String item;
+
+    public static ReviewResponse from(Review review) {
+        return ReviewResponse.builder()
+                .id(review.getId())
+                .createDate(review.getCreateDate().toString())
+                .modifyDate(review.getModifyDate().toString())
+                .starRating(review.getStarRating())
+                .content(review.getContent())
+                .purity(review.getPurity().toString())
+                .retouch(review.getRetouch().toString())
+                .item(review.getItem().toString())
+                .build();
+    }
 }

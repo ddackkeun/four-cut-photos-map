@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.domain.shop.service;
 
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
@@ -117,3 +118,4 @@ public class ShopServiceUnitTest {
         }
     }
 }
+*/

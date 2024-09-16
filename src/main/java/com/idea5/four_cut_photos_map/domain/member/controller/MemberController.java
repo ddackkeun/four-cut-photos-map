@@ -10,6 +10,8 @@ import com.idea5.four_cut_photos_map.domain.member.service.MemberRequestService;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberService;
 import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitleResponse;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
+import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ public class MemberController {
     private final MemberRequestService memberRequestService;
     private final MemberReadService memberReadService;
     private final MemberTitleService memberTitleService;
+    private final ReviewReadService reviewReadService;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/info")
@@ -95,5 +98,16 @@ public class MemberController {
         memberRequestService.deleteMember(memberContext.getId());
 
         return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{member-id}/reviews")
+    public ResponseEntity<List<MemberReviewResponse>> getMemberReviews(
+            @PathVariable("member-id") Long memberId,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<MemberReviewResponse> response = reviewReadService.getMemberReviews(memberId, lastId, size);
+        return ResponseEntity.ok(response);
     }
 }

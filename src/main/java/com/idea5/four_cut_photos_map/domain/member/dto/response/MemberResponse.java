@@ -16,12 +16,12 @@ import java.util.Collection;
 @ToString
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MemberResponse {
-    private Long id;            // 회원 번호
-    private String nickname;    // 닉네임
-    private String mainTitleName; // 회원 대표 칭호
+    private Long id;                // 회원 번호
+    private String nickname;        // 닉네임
+    private String mainTitleName;   // 회원 대표 칭호
     private Collection<? extends GrantedAuthority> authorities;
 
-    public static MemberResponse toResponse(Member member) {
+    public static MemberResponse from(Member member) {
         return MemberResponse.builder()
                 .id(member.getId())
                 .nickname(member.getNickname())
