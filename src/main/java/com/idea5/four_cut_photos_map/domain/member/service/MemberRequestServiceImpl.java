@@ -14,6 +14,7 @@ import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleLog;
 import com.idea5.four_cut_photos_map.domain.memberTitle.repository.MemberTitleLogRepository;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
+import com.idea5.four_cut_photos_map.domain.reviewphoto.enums.ReviewPhotoStatus;
 import com.idea5.four_cut_photos_map.global.common.RedisDao;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
@@ -43,11 +44,11 @@ public class MemberRequestServiceImpl implements MemberRequestService {
                         existingMember.updateStatus(MemberStatus.REGISTERED);
                     }
                     existingMember.updateKakaoRefreshToken(kakaoToken.getRefreshToken());
-                    return new LoginResponse(MemberResponse.toResponse(existingMember), false);
+                    return new LoginResponse(MemberResponse.from(existingMember), false);
                 })
                 .orElseGet(() -> {
                     Member newMember = register(kakaoUserInfo, kakaoToken);
-                    return new LoginResponse(MemberResponse.toResponse(newMember), true);
+                    return new LoginResponse(MemberResponse.from(newMember), true);
                 });
 
         redisDao.setValues(
@@ -62,7 +63,7 @@ public class MemberRequestServiceImpl implements MemberRequestService {
     @Override
     public Member register(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken) {
         String nickname = generateUniqueNickname(kakaoUserInfo.getNickname());
-        Member member = MemberFactory.fromKakaoUser(kakaoUserInfo, kakaoToken, nickname, MemberStatus.REGISTERED);
+        Member member = MemberFactory.from(kakaoUserInfo, kakaoToken, nickname, MemberStatus.REGISTERED);
         return memberRepository.save(member);
     }
 
@@ -103,10 +104,14 @@ public class MemberRequestServiceImpl implements MemberRequestService {
         List<Favorite> favorites = favoriteRepository.findAllByMemberId(id);
         favoriteRepository.deleteAll(favorites);
 
-        reviewRepository.findAllByMemberId(id)
-                .forEach(review -> review.changeStatus(ReviewStatus.DELETED));
+        reviewRepository.findAllByMemberIdAndStatus(id, ReviewStatus.REGISTERED)
+                .forEach(review -> {
+                    review.updateStatus(ReviewStatus.DELETED);
+                    review.getPhotos().stream()
+                            .filter(reviewPhoto -> reviewPhoto.getStatus().equals(ReviewPhotoStatus.REGISTERED))
+                            .forEach(reviewPhoto -> reviewPhoto.updateStatus(ReviewPhotoStatus.DELETED));
+                });
 
-        // 3. DB 에서 회원 삭제
         member.updateStatus(MemberStatus.DELETED);
     }
 

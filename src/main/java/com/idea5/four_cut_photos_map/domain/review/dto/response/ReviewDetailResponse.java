@@ -10,7 +10,6 @@ import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopResponse;
 import lombok.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -24,15 +23,7 @@ public class ReviewDetailResponse {
     private ShopResponse shop;
     private List<ReviewPhotoResponse> photos;
 
-    public static ReviewDetailResponse from(Review review) {
-        ReviewResponse reviewResponse = ReviewResponse.from(review);
-        MemberResponse memberResponse = MemberResponse.from(review.getMember());
-        ShopResponse shopResponse = ShopResponse.from(review.getShop());
-        List<ReviewPhotoResponse> reviewPhotoResponses = review.getPhotos().stream()
-                .filter(reviewPhoto -> reviewPhoto.getStatus().equals(ReviewPhotoStatus.REGISTERED))
-                .map(ReviewPhotoResponse::from)
-                .collect(Collectors.toList());
-
+    public static ReviewDetailResponse from(ReviewResponse reviewResponse, MemberResponse memberResponse, ShopResponse shopResponse, List<ReviewPhotoResponse> reviewPhotoResponses) {
         return ReviewDetailResponse.builder()
                 .review(reviewResponse)
                 .member(memberResponse)

@@ -104,8 +104,8 @@ public class MemberController {
     @GetMapping("/{member-id}/reviews")
     public ResponseEntity<List<MemberReviewResponse>> getMemberReviews(
             @PathVariable("member-id") Long memberId,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(required = false, defaultValue = "9223372036854775807") Long lastId,
+            @RequestParam(required = false, defaultValue = "10") int size
     ) {
         List<MemberReviewResponse> response = reviewReadService.getMemberReviews(memberId, lastId, size);
         return ResponseEntity.ok(response);

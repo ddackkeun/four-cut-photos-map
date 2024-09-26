@@ -26,12 +26,10 @@ public class OptionalAuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        log.info("---OptionalAuthenticationInterceptor preHandle()---");
         log.info("requestURI=" + request.getRequestURI());
         // 1. Authorization Header 에 토큰이 없는 경우 인증 처리X
         if(request.getHeader("Authorization") == null)
             return true;
-        log.info("인증 처리");
         // 2. Authorization Header 에 토큰이 있는 경우 인증 처리O
         // 1. Authorization Header 에서 accessToken 가져오기
         String accessToken = jwtProvider.getJwtToken(request);
@@ -53,8 +51,7 @@ public class OptionalAuthenticationInterceptor implements HandlerInterceptor {
 
     // Spring Security 에 유저의 인증 정보 등록(컨트롤러 단에서 @AuthenticationPrincipal 로 인증 객체를 얻기 위함)
     private void forceAuthentication(Member member) {
-        log.info("---forceAuthentication()---");
-        log.info(member.getId().toString());
+        log.debug("memberId = {}", member.getId());
         // 1. Member 를 기반으로 User 를 상속한 MemberContext 객체 생성
         MemberContext memberContext = new MemberContext(member);
         // 2. Authentication 객체 생성

@@ -135,7 +135,7 @@ public class ShopController {
         Shop dbShop = shopService.findById(id);
         ResponseShopDetail shopDetailDto = shopService.setResponseDto(dbShop, userLat, userLng);
 
-        List<ShopReviewResponse> recentShopReviews = reviewReadService.getShopReviews(id, null, 5);
+        List<ShopReviewResponse> recentShopReviews = reviewReadService.getShopReviews(id, Long.MAX_VALUE, 5);
         shopDetailDto.setRecentReviews(recentShopReviews);
 
         if (memberContext != null) {
@@ -153,8 +153,8 @@ public class ShopController {
     @GetMapping("/{shop-id}/reviews")
     public ResponseEntity<List<ShopReviewResponse>> getShopReviews(
             @PathVariable("shop-id") Long shopId,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(required = false, defaultValue = "9223372036854775807") Long lastId,
+            @RequestParam(required = false, defaultValue = "10") int size
     ) {
         List<ShopReviewResponse> response = reviewReadService.getShopReviews(shopId, lastId, size);
         return ResponseEntity.ok(response);

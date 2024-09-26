@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 public class ReviewPhotoRequestServiceImpl implements ReviewPhotoRequestService {
     private final ReviewPhotoRepository reviewPhotoRepository;
 
-    @Override
+    /*@Override
     public ReviewPhoto createReviewPhoto(ReviewPhoto reviewPhoto) {
         reviewPhoto.modifyStatus(ReviewPhotoStatus.REGISTERED);
         return reviewPhotoRepository.save(reviewPhoto);
-    }
+    }*/
 }

@@ -7,6 +7,7 @@ import lombok.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -27,4 +28,5 @@ public class ReviewRequest {
 
     private String item;
 
+    private List<String> imageUrls;
 }

@@ -28,15 +28,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        log.info("---AuthenticationInterceptor preHandle()---");
-        log.info("requestURI=" + request.getRequestURI());
+        log.info("requestURI = {}", request.getRequestURI());
 
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
-               
-        if (method.getName().equals("getReview") || method.getName().equals("getShopReviews")) {
-            return true;
-        }
 
         // 1. Authorization Header 에서 accessToken 가져오기
         String accessToken = jwtProvider.getJwtToken(request);
@@ -54,12 +49,9 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         return true;
     }
 
-
-
     // Spring Security 에 유저의 인증 정보 등록(컨트롤러 단에서 @AuthenticationPrincipal 로 인증 객체를 얻기 위함)
     private void forceAuthentication(Member member) {
-        log.info("---forceAuthentication()---");
-        log.info(member.getId().toString());
+        log.debug("memberId = {}", member.getId());
         // 1. Member 를 기반으로 User 를 상속한 MemberContext 객체 생성
         MemberContext memberContext = new MemberContext(member);
         // 2. Authentication 객체 생성

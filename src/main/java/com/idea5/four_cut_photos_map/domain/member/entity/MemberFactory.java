@@ -4,7 +4,7 @@ import com.idea5.four_cut_photos_map.domain.auth.dto.param.KakaoUserInfoParam;
 import com.idea5.four_cut_photos_map.domain.auth.dto.response.KakaoTokenResp;
 
 public class MemberFactory {
-    public static Member fromKakaoUser(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken, String nickname, MemberStatus status) {
+    public static Member from(KakaoUserInfoParam kakaoUserInfo, KakaoTokenResp kakaoToken, String nickname, MemberStatus status) {
         return Member.builder()
                 .kakaoId(kakaoUserInfo.getId())
                 .nickname(nickname)

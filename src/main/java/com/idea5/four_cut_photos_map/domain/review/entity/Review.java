@@ -1,12 +1,12 @@
 package com.idea5.four_cut_photos_map.domain.review.entity;
 
 import com.idea5.four_cut_photos_map.domain.member.entity.Member;
-import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ItemScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.reviewphoto.entity.ReviewPhoto;
+import com.idea5.four_cut_photos_map.domain.reviewphoto.enums.ReviewPhotoStatus;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import lombok.*;
@@ -40,10 +40,6 @@ public class Review extends BaseEntity {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 50, nullable = false)
-    private ReviewStatus status;
-
-    @Enumerated(EnumType.STRING)
     @Column(length = 50)
     private PurityScore purity;
 
@@ -55,7 +51,12 @@ public class Review extends BaseEntity {
     @Column(length = 50)
     private ItemScore item;
 
-    @OneToMany(mappedBy = "review", cascade = CascadeType.PERSIST)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
+    private ReviewStatus status;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "review", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<ReviewPhoto> photos = new ArrayList<>();
 
     public void addPhoto(ReviewPhoto photo) {
@@ -84,4 +85,8 @@ public class Review extends BaseEntity {
         this.item = itemScore;
     }
 
+    public void delete() {
+        this.status = ReviewStatus.DELETED;
+        this.photos.forEach(ReviewPhoto::delete);
+    }
 }

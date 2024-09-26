@@ -1,3 +1,4 @@
+/*
 package com.idea5.four_cut_photos_map.domain.shop.mapper;
 
 import com.idea5.four_cut_photos_map.domain.brand.entity.Brand;
@@ -15,3 +16,4 @@ public class ShopMapper {
                 .build();
     }
 }
+*/

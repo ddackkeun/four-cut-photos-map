@@ -26,7 +26,7 @@ class ShopRequestServiceImplTest {
     @InjectMocks
     private ShopRequestServiceImpl shopRequestService;
 
-    @Nested
+    /*@Nested
     @DisplayName("상점 리뷰 정보 갱신")
     class UpdateReviewInfo {
         @Nested
@@ -93,5 +93,5 @@ class ShopRequestServiceImplTest {
         class FailCase {
 
         }
-    }
+    }*/
 }

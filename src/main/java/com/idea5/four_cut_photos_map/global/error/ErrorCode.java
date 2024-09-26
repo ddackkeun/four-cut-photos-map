@@ -45,12 +45,14 @@ public enum ErrorCode {
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "0002", "파라미터 형식이 잘못되었습니다."),
     MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "0003", "필수 파라미터가 누락되었습니다"),
     NO_REQUEST_DATA(HttpStatus.BAD_REQUEST, "0004", "요청데이터가 존재하지 않습니다."),
+    INVALID_URL(HttpStatus.BAD_REQUEST, "0005", "잘못된 URL 입니다."),
 
     // 파일 업로드 오류
     NOT_IMAGE_FILE(HttpStatus.BAD_REQUEST, "1001", "이미지 파일(png, jpeg, gif, webp)이 아닙니다."),
     FILE_SIZE_EXCEED(HttpStatus.BAD_REQUEST, "1002", "업로드 가능한 파일 용량을 초과했습니다."),
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "1003", "이미지 업로드에 실패했습니다."),
-    NO_FILES_PROVIDED(HttpStatus.BAD_REQUEST, "1004", "요청에 제공된 파일이 없습니다.")
+    NO_FILES_PROVIDED(HttpStatus.BAD_REQUEST, "1004", "요청에 제공된 파일이 없습니다."),
+    FILE_ACCESS_DENIED(HttpStatus.UNAUTHORIZED, "1005", "해당 파일에 접근할 수 있는 권한이 없습니다.")
     ;
 
     private HttpStatus httpStatus;

@@ -4,7 +4,8 @@ import com.idea5.four_cut_photos_map.domain.review.dto.request.ReviewRequest;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewDetailResponse;
 import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
 import com.idea5.four_cut_photos_map.domain.review.service.ReviewRequestService;
-import com.idea5.four_cut_photos_map.domain.shop.service.ShopService;
+import com.idea5.four_cut_photos_map.domain.reviewphoto.service.S3Service;
+import com.idea5.four_cut_photos_map.domain.shop.service.ShopRequestService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import javax.validation.Valid;
 public class ReviewController {
     private final ReviewReadService reviewReadService;
     private final ReviewRequestService reviewRequestService;
-    private final ShopService shopService;
+    private final ShopRequestService shopRequestService;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{review-id}")
@@ -39,21 +40,19 @@ public class ReviewController {
             @Valid @RequestBody ReviewRequest request
     ) {
         Long shopId = reviewRequestService.modifyReview(memberContext.getId(), reviewId, request);
-
-        // TODO 추후 배치 등 이용해서 상점 정보 갱신
-        shopService.updateReviewInfo(shopId);
+        shopRequestService.updateReviewInfo(shopId);        // TODO 추후 배치 등 이용해서 상점 정보 갱신
 
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{review-id}")
-    public ResponseEntity<String> deleteReview(@PathVariable("review-id") Long reviewId,
-                                               @AuthenticationPrincipal MemberContext memberContext) {
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable("review-id") Long reviewId,
+            @AuthenticationPrincipal MemberContext memberContext
+    ) {
         Long shopId = reviewRequestService.deleteReview(memberContext.getId(), reviewId);
-
-        // TODO 추후 배치 등 이용해서 상점 정보 갱신
-        shopService.updateReviewInfo(shopId);
+        shopRequestService.updateReviewInfo(shopId);        // TODO 추후 배치 등 이용해서 상점 정보 갱신
 
         return ResponseEntity.ok().build();
     }

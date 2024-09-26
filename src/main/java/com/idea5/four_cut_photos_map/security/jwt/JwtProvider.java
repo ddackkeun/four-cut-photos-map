@@ -2,10 +2,7 @@ package com.idea5.four_cut_photos_map.security.jwt;
 
 import com.idea5.four_cut_photos_map.domain.token.model.TokenDTO;
 import com.idea5.four_cut_photos_map.security.jwt.exception.NonTokenException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -113,13 +110,11 @@ public class JwtProvider {
 
     // accessToken 으로부터 Claim 정보 얻기
     private Claims parseClaims(String accessToken) {
-        Claims claims = Jwts.parserBuilder()
+        JwtParser parser = Jwts.parserBuilder()
                 .setSigningKey(getSecretKey())
-                .build()
-                .parseClaimsJws(accessToken)
-                .getBody();
-        log.info(claims.toString());
-        return claims;
+                .build();
+
+        return parser.parseClaimsJws(accessToken).getBody();
     }
 
     // Claims 에서 id 조회

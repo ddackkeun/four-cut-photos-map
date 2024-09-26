@@ -29,9 +29,9 @@ public class ReviewResponse {
                 .modifyDate(review.getModifyDate().toString())
                 .starRating(review.getStarRating())
                 .content(review.getContent())
-                .purity(review.getPurity().toString())
-                .retouch(review.getRetouch().toString())
-                .item(review.getItem().toString())
+                .purity(review.getPurity() != null ? review.getPurity().toString() : null)
+                .retouch(review.getRetouch() != null ? review.getRetouch().toString() : null)
+                .item(review.getItem() != null ? review.getItem().toString() : null)
                 .build();
     }
 }

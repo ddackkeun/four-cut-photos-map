@@ -39,7 +39,7 @@ public class Shop extends BaseEntity {
     @Column(nullable = false)
     private Double starRatingAvg;
 
-    public void update(Integer reviewCount, Double starRatingAvg) {
+    public void updateReviewSummary(Integer reviewCount, Double starRatingAvg) {
         this.reviewCnt = reviewCount;
         this.starRatingAvg = starRatingAvg;
     }

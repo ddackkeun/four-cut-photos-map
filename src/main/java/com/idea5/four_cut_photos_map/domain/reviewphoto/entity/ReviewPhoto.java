@@ -24,21 +24,16 @@ public class ReviewPhoto extends BaseEntity {
     @Column(nullable = false)
     private Long shopId;
 
-    @Column(length = 150, nullable = false)
-    private String fileName;
-
     @Column(length = 200, nullable = false)
-    private String filePath;
-
-    @Column(length = 50, nullable = false)
-    private String fileType;
-
-    @Column(nullable = false)
-    private long fileSize;
+    private String url;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
     private ReviewPhotoStatus status;
+
+    public static ReviewPhoto create(Review review, Long shopId, String url, ReviewPhotoStatus status) {
+        return new ReviewPhoto(review, shopId, url, status);
+    }
 
     public void setReview(Review review) {
         this.review = review;
@@ -48,4 +43,7 @@ public class ReviewPhoto extends BaseEntity {
         this.status = status;
     }
 
+    public void delete() {
+        this.status = ReviewPhotoStatus.DELETED;
+    }
 }

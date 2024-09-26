@@ -148,16 +148,4 @@ public class ShopService {
         shopRepository.save(shop);
     }
 
-    @Transactional
-    public void updateReviewInfo(Long shopId) {
-        Shop shop = findById(shopId);
-
-        Integer reviewCount = reviewRepository.countByShopIdAndStatus(shopId, ReviewStatus.REGISTERED);
-        Double roundAvgStarRating = Optional.of(reviewRepository.findAverageStarRatingByShopIdAndStatus(shopId, ReviewStatus.REGISTERED))
-                .map(avgStarRating -> Math.round(avgStarRating * 10) / 10.0)
-                .orElse(0.0);
-
-        shop.update(reviewCount, roundAvgStarRating);
-    }
-
 }
