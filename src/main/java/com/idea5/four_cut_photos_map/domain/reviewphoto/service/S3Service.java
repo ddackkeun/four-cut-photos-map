@@ -62,7 +62,7 @@ public class S3Service {
 
         try {
             amazonS3Client.putObject(bucketName, fileName, file.getInputStream(), metadata);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new BusinessException(ErrorCode.IMAGE_UPLOAD_FAILED);
         }
 

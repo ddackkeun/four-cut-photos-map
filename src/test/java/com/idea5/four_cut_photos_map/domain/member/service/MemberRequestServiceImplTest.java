@@ -237,7 +237,7 @@ class MemberRequestServiceImplTest {
         given(redisDao.hasKey(RedisDao.getKakaoAtkKey(memberId))).willReturn(true);
         given(memberTitleLogRepository.findAllByMemberId(memberId)).willReturn(memberTitleLogs);
         given(favoriteRepository.findAllByMemberId(memberId)).willReturn(favorites);
-        given(reviewRepository.findAllByMemberId(memberId)).willReturn(reviews);
+        given(reviewRepository.findAllByMemberIdAndStatus(memberId, ReviewStatus.REGISTERED)).willReturn(reviews);
 
         // when
         memberRequestService.deleteMember(memberId);
@@ -255,7 +255,7 @@ class MemberRequestServiceImplTest {
 
     @Test
     @DisplayName("회원이 없을 때 예외 발생")
-    void testDeleteMember_MemberNotFound() {
+    void deleteMember_MemberNotFound() {
         // given
         Long memberId = 1L;
 
@@ -272,6 +272,6 @@ class MemberRequestServiceImplTest {
         verify(memberTitleLogRepository, never()).deleteAll(anyList());
         verify(favoriteRepository, never()).findAllByMemberId(anyLong());
         verify(favoriteRepository, never()).deleteAll(anyList());
-        verify(reviewRepository, never()).findAllByMemberId(anyLong());
+        verify(reviewRepository, never()).findAllByMemberIdAndStatus(anyLong(), any());
     }
 }

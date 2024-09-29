@@ -160,6 +160,8 @@ class MemberReadServiceImplTest {
         // then
         assertEquals(memberId, response.getId());
         assertEquals(titleCount.intValue(), response.getMemberTitleCnt());
+        verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+        verify(memberTitleLogRepository).countByMemberId(memberId);
     }
 
     @Test
