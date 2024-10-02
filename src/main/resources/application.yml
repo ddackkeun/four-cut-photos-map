@@ -19,8 +19,8 @@ spring:
     #        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
     properties:
       hibernate:
-        format_sql: true              # sql문 이쁘게 출력
-        default_batch_fetch_size: 500 # 일대다 컬렉션 조회 시 성능 최적화 ( jpa 성능 개선을 위함 )
+        format_sql: true                  # sql문 이쁘게 출력
+        default_batch_fetch_size: 25     # 일대다 컬렉션 조회 시 성능 최적화 ( jpa 성능 개선을 위함 )
     defer-datasource-initialization: true
   sql:
     init:

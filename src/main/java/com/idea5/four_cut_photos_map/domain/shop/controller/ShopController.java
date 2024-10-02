@@ -3,6 +3,8 @@ package com.idea5.four_cut_photos_map.domain.shop.controller;
 
 import com.idea5.four_cut_photos_map.domain.favorite.entity.Favorite;
 import com.idea5.four_cut_photos_map.domain.favorite.service.FavoriteService;
+import com.idea5.four_cut_photos_map.global.util.CursorRequest;
+import com.idea5.four_cut_photos_map.global.util.CursorResponse;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.KakaoMapSearchDto;
@@ -21,12 +23,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @RequestMapping("/shops")
@@ -135,7 +135,7 @@ public class ShopController {
         Shop dbShop = shopService.findById(id);
         ResponseShopDetail shopDetailDto = shopService.setResponseDto(dbShop, userLat, userLng);
 
-        List<ShopReviewResponse> recentShopReviews = reviewReadService.getShopReviews(id, Long.MAX_VALUE, 5);
+        CursorResponse<ShopReviewResponse> recentShopReviews = reviewReadService.getShopReviews(id, CursorRequest.of(Long.MAX_VALUE, 5));
         shopDetailDto.setRecentReviews(recentShopReviews);
 
         if (memberContext != null) {
@@ -151,12 +151,11 @@ public class ShopController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{shop-id}/reviews")
-    public ResponseEntity<List<ShopReviewResponse>> getShopReviews(
+    public ResponseEntity<CursorResponse<ShopReviewResponse>> getShopReviews(
             @PathVariable("shop-id") Long shopId,
-            @RequestParam(required = false, defaultValue = "9223372036854775807") Long lastId,
-            @RequestParam(required = false, defaultValue = "10") int size
+            @Valid CursorRequest request
     ) {
-        List<ShopReviewResponse> response = reviewReadService.getShopReviews(shopId, lastId, size);
+        CursorResponse<ShopReviewResponse> response = reviewReadService.getShopReviews(shopId, request);
         return ResponseEntity.ok(response);
     }
 

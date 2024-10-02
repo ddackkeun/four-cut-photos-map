@@ -3,10 +3,9 @@ package com.idea5.four_cut_photos_map.domain.review.service;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewDetailResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ReviewResponse;
-import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewResponse;
+import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
+import com.idea5.four_cut_photos_map.global.util.CursorRequest;
+import com.idea5.four_cut_photos_map.domain.review.dto.response.*;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
@@ -14,8 +13,10 @@ import com.idea5.four_cut_photos_map.domain.reviewphoto.dto.response.ReviewPhoto
 import com.idea5.four_cut_photos_map.domain.reviewphoto.enums.ReviewPhotoStatus;
 import com.idea5.four_cut_photos_map.domain.shop.dto.response.ShopResponse;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
+import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
+import com.idea5.four_cut_photos_map.global.util.CursorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -53,13 +54,20 @@ public class ReviewReadServiceImpl implements ReviewReadService {
     }
 
     @Override
-    public List<ShopReviewResponse> getShopReviews(Long shopId, Long lastReviewId, int size) {
-        shopRepository.findById(shopId)
+    public CursorResponse<ShopReviewResponse> getShopReviews(Long shopId, CursorRequest request) {
+        Shop shop = shopRepository.findById(shopId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_NOT_FOUND));
 
-        return reviewRepository.findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size)).stream()
+        long lastReviewId = request.getKeyOrDefault(Long.MAX_VALUE);
+        int size = request.getSizeOrDefault(10);
+        List<Review> reviews = reviewRepository.findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
+
+        long nextKey = getNextKey(reviews);
+        List<ShopReviewResponse> responses = reviews.stream()
                 .map(this::toShopReviewResponse)
-                .collect(Collectors.toList());
+                .toList();
+
+        return new CursorResponse<>(CursorRequest.of(nextKey, size), responses);
     }
 
     private ReviewDetailResponse toReviewDetailResponse(Review review) {
@@ -96,4 +104,10 @@ public class ReviewReadServiceImpl implements ReviewReadService {
         return ShopReviewResponse.from(reviewResponse, memberResponse, reviewPhotoResponses);
     }
 
+    private long getNextKey(List<Review> reviews) {
+        return reviews.stream()
+                .mapToLong(BaseEntity::getId)
+                .min()
+                .orElse(CursorRequest.NONE_KEY);
+    }
 }

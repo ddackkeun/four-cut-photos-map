@@ -12,17 +12,22 @@ import com.idea5.four_cut_photos_map.domain.review.entity.enums.PurityScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.RetouchScore;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
 import com.idea5.four_cut_photos_map.domain.review.repository.ReviewRepository;
+import com.idea5.four_cut_photos_map.domain.reviewphoto.dto.response.ReviewPhotoResponse;
 import com.idea5.four_cut_photos_map.domain.reviewphoto.entity.ReviewPhoto;
 import com.idea5.four_cut_photos_map.domain.reviewphoto.enums.ReviewPhotoStatus;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
 import com.idea5.four_cut_photos_map.domain.shop.repository.ShopRepository;
+import com.idea5.four_cut_photos_map.global.base.entity.BaseEntity;
 import com.idea5.four_cut_photos_map.global.error.ErrorCode;
 import com.idea5.four_cut_photos_map.global.error.exception.BusinessException;
+import com.idea5.four_cut_photos_map.global.util.CursorRequest;
+import com.idea5.four_cut_photos_map.global.util.CursorResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
@@ -320,6 +326,7 @@ public class ReviewReadServiceImplTest {
                 Long shopId = 1L;
                 Long lastReviewId = 5L;
                 int size = 10;
+                CursorRequest cursorRequest = CursorRequest.of(lastReviewId, size);
                 PageRequest pageRequest = PageRequest.of(0, size);
 
                 Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member1).shop(shop).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
@@ -332,37 +339,48 @@ public class ReviewReadServiceImplTest {
                 review2.addPhoto(reviewPhoto5);
 
                 given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
-                given(reviewRepository.findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, pageRequest)).willReturn(shopReviews);
+                given(reviewRepository.findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest)).willReturn(shopReviews);
 
                 // when
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, lastReviewId, size);
+                CursorResponse<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, cursorRequest);
 
                 // then
-                assertTrue(result.size() <= size);
-                assertEquals(shopReviews.size(), result.size());
+                assertEquals(review1.getId(), result.getNextCursorRequest().getKey());
+                assertEquals(size, result.getNextCursorRequest().getSize());
 
-                assertTrue(result.get(0).getReview().getId() < lastReviewId);
-                assertEquals(review2.getId(), result.get(0).getReview().getId());
-                assertEquals(member2.getId(), result.get(0).getMember().getId());
-                assertEquals(1, result.get(0).getPhotos().size());
-                assertEquals(reviewPhoto3.getId(), result.get(0).getPhotos().get(0).getId());
+                assertTrue(result.getBody().size() <= size);
+                assertEquals(shopReviews.size(), result.getBody().size());
+                IntStream.range(0, result.getBody().size())
+                        .forEach(i -> {
+                            ShopReviewResponse response = result.getBody().get(i);
+                            Review review = shopReviews.get(i);
+                            List<Long> reviewPhotoIds = review.getPhotos().stream()
+                                    .filter(photo -> photo.getStatus().equals(ReviewPhotoStatus.REGISTERED))
+                                    .map(BaseEntity::getId)
+                                    .toList();
+                            List<Long> responsePhotoIds = response.getPhotos().stream()
+                                    .map(ReviewPhotoResponse::getId)
+                                    .toList();
 
-                assertTrue(result.get(1).getReview().getId() < lastReviewId);
-                assertEquals(review1.getId(), result.get(1).getReview().getId());
-                assertEquals(member1.getId(), result.get(1).getMember().getId());
-                assertEquals(1, result.get(1).getPhotos().size());
-                assertEquals(reviewPhoto1.getId(), result.get(1).getPhotos().get(0).getId());
+                            assertTrue(response.getReview().getId() < lastReviewId);
+                            assertEquals(review.getId(), response.getReview().getId());
+                            assertEquals(review.getMember().getId(), response.getMember().getId());
+                            assertEquals(reviewPhotoIds.size(), responsePhotoIds.size());
+                            assertEquals(reviewPhotoIds, responsePhotoIds);
+                        });
 
                 verify(shopRepository).findById(shopId);
-                verify(reviewRepository).findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, pageRequest);
+                verify(reviewRepository).findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest);
             }
+
             @Test
             @DisplayName("조건에 맞는 지점의 리뷰가 있고 리뷰 사진이 없을 때 MemberReviewResponse 반환")
             void getShopReviews_Success2() {
                 // given
                 Long shopId = 1L;
                 Long lastReviewId = 5L;
-                int size = 10;
+                int size = 5;
+                CursorRequest cursorRequest = CursorRequest.of(lastReviewId, size);
                 PageRequest pageRequest = PageRequest.of(0, size);
 
                 Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member1).shop(shop).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
@@ -370,27 +388,30 @@ public class ReviewReadServiceImplTest {
                 List<Review> shopReviews = List.of(review2, review1);
 
                 given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
-                given(reviewRepository.findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, pageRequest)).willReturn(shopReviews);
+                given(reviewRepository.findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest)).willReturn(shopReviews);
 
                 // when
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, lastReviewId, size);
+                CursorResponse<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, cursorRequest);
 
                 // then
-                assertTrue(result.size() <= size);
-                assertEquals(shopReviews.size(), result.size());
+                assertEquals(review1.getId(), result.getNextCursorRequest().getKey());
+                assertEquals(size, result.getNextCursorRequest().getSize());
 
-                assertTrue(result.get(0).getReview().getId() < lastReviewId);
-                assertEquals(review2.getId(), result.get(0).getReview().getId());
-                assertEquals(member2.getId(), result.get(0).getMember().getId());
-                assertTrue(result.get(0).getPhotos().isEmpty());
+                assertTrue(result.getBody().size() <= size);
+                assertEquals(shopReviews.size(), result.getBody().size());
+                IntStream.range(0, result.getBody().size())
+                                .forEach(i -> {
+                                    ShopReviewResponse response = result.getBody().get(i);
+                                    Review review = shopReviews.get(i);
 
-                assertTrue(result.get(1).getReview().getId() < lastReviewId);
-                assertEquals(review1.getId(), result.get(1).getReview().getId());
-                assertEquals(member1.getId(), result.get(1).getMember().getId());
-                assertTrue(result.get(1).getPhotos().isEmpty());
+                                    assertTrue(response.getReview().getId() < lastReviewId);
+                                    assertEquals(review.getId(), response.getReview().getId());
+                                    assertEquals(review.getMember().getId(), response.getMember().getId());
+                                    assertTrue(response.getPhotos().isEmpty());
+                                });
 
                 verify(shopRepository).findById(shopId);
-                verify(reviewRepository).findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, pageRequest);
+                verify(reviewRepository).findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest);
             }
 
             @Test
@@ -398,21 +419,56 @@ public class ReviewReadServiceImplTest {
             void getShopReviews_Success3() {
                 // given
                 Long shopId = 1L;
-                Long lastReviewId = 5L;
-                int size = 10;
+                long lastReviewId = 5L;
+                int size = 5;
+                CursorRequest cursorRequest = CursorRequest.of(lastReviewId, size);
                 PageRequest pageRequest = PageRequest.of(0, size);
 
                 given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
-                given(reviewRepository.findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, pageRequest)).willReturn(Collections.emptyList());
+                given(reviewRepository.findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest)).willReturn(Collections.emptyList());
 
                 // when
-                List<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, lastReviewId, size);
+                CursorResponse<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, cursorRequest);
 
                 // then
-                assertTrue(result.isEmpty());
+                assertEquals(CursorRequest.NONE_KEY, result.getNextCursorRequest().getKey());
+                assertEquals(size, result.getNextCursorRequest().getSize());
+                assertTrue(result.getBody().isEmpty());
                 verify(shopRepository).findById(shopId);
-                verify(reviewRepository).findAllByShopIdAndStatusAndIdLessThan(shopId, ReviewStatus.REGISTERED, lastReviewId, pageRequest);
+                verify(reviewRepository).findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest);
             }
+
+            @Test
+            @DisplayName("CursorRequest null 일 때 기본 값 응답")
+            void getShopReviews_Success4() {
+                // given
+                Long shopId = 1L;
+                CursorRequest cursorRequest = CursorRequest.of(null, null);
+
+                Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member1).shop(shop).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                Review review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member2).shop(shop).starRating(2).content("리뷰 내용2").purity(PurityScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                List<Review> shopReviews = List.of(review2, review1);
+
+                given(shopRepository.findById(shopId)).willReturn(Optional.of(shop));
+                given(reviewRepository.findAllByShopAndStatusAndIdLessThanOrderByIdDesc(eq(shop), eq(ReviewStatus.REGISTERED), anyLong(), any(PageRequest.class))).willReturn(shopReviews);
+
+                // when
+                CursorResponse<ShopReviewResponse> result = reviewReadServiceImpl.getShopReviews(shopId, cursorRequest);
+
+                // then
+                assertEquals(review1.getId(), result.getNextCursorRequest().getKey());
+                assertEquals(10, result.getNextCursorRequest().getSize());
+
+                ArgumentCaptor<Long> keyCaptor = ArgumentCaptor.forClass(Long.class);
+                ArgumentCaptor<PageRequest> pageRequestCaptor = ArgumentCaptor.forClass(PageRequest.class);
+                verify(shopRepository).findById(shopId);
+                verify(reviewRepository).findAllByShopAndStatusAndIdLessThanOrderByIdDesc(eq(shop), eq(ReviewStatus.REGISTERED), keyCaptor.capture(), pageRequestCaptor.capture());
+
+                assertEquals(Long.MAX_VALUE, keyCaptor.getValue());
+                assertEquals(0, pageRequestCaptor.getValue().getPageNumber());
+                assertEquals(10, pageRequestCaptor.getValue().getPageSize());
+            }
+
         }
 
         @Nested
@@ -425,15 +481,16 @@ public class ReviewReadServiceImplTest {
                 Long shopId = 99L;
                 Long lastReviewId = 5L;
                 int size = 10;
+                CursorRequest cursorRequest = new CursorRequest(lastReviewId, size);
 
                 given(shopRepository.findById(shopId)).willReturn(Optional.empty());
 
                 // when & then
                 BusinessException result = assertThrows(BusinessException.class,
-                        () -> reviewReadServiceImpl.getShopReviews(shopId, lastReviewId, size));
+                        () -> reviewReadServiceImpl.getShopReviews(shopId, cursorRequest));
                 assertEquals(ErrorCode.SHOP_NOT_FOUND, result.getErrorCode());
                 verify(shopRepository).findById(shopId);
-                verify(reviewRepository, never()).findAllByShopIdAndStatusAndIdLessThan(anyLong(), any(), anyLong(), any());
+                verify(reviewRepository, never()).findAllByShopAndStatusAndIdLessThanOrderByIdDesc(any(Shop.class), any(), anyLong(), any());
             }
         }
     }
