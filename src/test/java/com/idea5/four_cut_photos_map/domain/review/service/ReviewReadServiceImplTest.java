@@ -178,10 +178,12 @@ public class ReviewReadServiceImplTest {
                 // given
                 Long memberId = 1L;
                 Long lastReviewId = 3L;
-                int size = 10;
+                int size = 5;
+                CursorRequest cursorRequest = CursorRequest.of(lastReviewId, size);
 
                 Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
                 Review review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop2).starRating(2).content("리뷰 내용2").purity(PurityScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                List<Review> memberReviews = List.of(review2, review1);
                 review1.addPhoto(reviewPhoto1);
                 review1.addPhoto(reviewPhoto2);
                 review2.addPhoto(reviewPhoto3);
@@ -189,86 +191,147 @@ public class ReviewReadServiceImplTest {
                 review2.addPhoto(reviewPhoto5);
 
                 given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
-                given(reviewRepository.findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size))).willReturn(List.of(review2, review1));
+                given(reviewRepository.findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size))).willReturn(memberReviews);
 
                 // when
-                List<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, lastReviewId, size);
+                CursorResponse<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, cursorRequest);
 
                 // then
-                assertEquals(2, result.size());
-                assertTrue(result.size() <= size);
+                assertEquals(review1.getId(), result.getNextCursorRequest().getKey());
+                assertEquals(size, result.getNextCursorRequest().getSize());
 
-                assertTrue(result.get(0).getReview().getId() < lastReviewId);
-                assertEquals(review2.getId(), result.get(0).getReview().getId());
-                assertEquals(shop2.getId(), result.get(0).getShop().getId());
-                assertEquals(1, result.get(0).getPhotos().size());
-                assertEquals(reviewPhoto3.getId(), result.get(0).getPhotos().get(0).getId());
+                assertEquals(memberReviews.size(), result.getBody().size());
+                assertTrue(size >= result.getBody().size());
+                IntStream.range(0, result.getBody().size())
+                        .forEach(i -> {
+                            MemberReviewResponse response = result.getBody().get(i);
+                            Review review = memberReviews.get(i);
 
-                assertTrue(result.get(1).getReview().getId() < lastReviewId);
-                assertEquals(review1.getId(), result.get(1).getReview().getId());
-                assertEquals(shop1.getId(), result.get(1).getShop().getId());
-                assertEquals(1, result.get(1).getPhotos().size());
-                assertEquals(reviewPhoto1.getId(), result.get(1).getPhotos().get(0).getId());
+                            List<Long> responsePhotoIds = response.getPhotos().stream()
+                                    .map(ReviewPhotoResponse::getId)
+                                    .toList();
+                            List<Long> reviewPhotoIds = review.getPhotos().stream()
+                                    .filter(photos -> photos.getStatus().equals(ReviewPhotoStatus.REGISTERED))
+                                    .map(BaseEntity::getId)
+                                    .toList();
+
+                            assertTrue(lastReviewId > response.getReview().getId());
+                            assertEquals(review.getId(), response.getReview().getId());
+                            assertEquals(review.getShop().getId(), response.getShop().getId());
+                            assertEquals(reviewPhotoIds.size(), responsePhotoIds.size());
+                            assertEquals(reviewPhotoIds, responsePhotoIds);
+                        });
 
                 verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
-                verify(reviewRepository).findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
+                verify(reviewRepository).findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
+            }
+
+            @Test
+            @DisplayName("조건에 맞는 회원의 리뷰가 있고 리뷰 사진이 없을 때 MemberReviewResponse 반환")
+            void getMemberReviews_Success2() {
+                // given
+                Long memberId = 1L;
+                Long lastReviewId = 3L;
+                int size = 5;
+                CursorRequest cursorRequest = CursorRequest.of(lastReviewId, size);
+
+                Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                Review review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop2).starRating(2).content("리뷰 내용2").purity(PurityScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                List<Review> memberReviews = List.of(review2, review1);
+
+                given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
+                given(reviewRepository.findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size))).willReturn(memberReviews);
+
+                // when
+                CursorResponse<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, cursorRequest);
+
+                // then
+                assertEquals(review1.getId(), result.getNextCursorRequest().getKey());
+                assertEquals(size, result.getNextCursorRequest().getSize());
+
+                assertTrue(size >= result.getBody().size());
+                assertEquals(memberReviews.size(), result.getBody().size());
+                IntStream.range(0, result.getBody().size())
+                        .forEach(i -> {
+                            MemberReviewResponse response = result.getBody().get(i);
+                            Review review = memberReviews.get(i);
+
+                            assertTrue(lastReviewId > response.getReview().getId());
+                            assertEquals(review.getId(), response.getReview().getId());
+                            assertEquals(review.getShop().getId(), response.getShop().getId());
+                            assertTrue(response.getPhotos().isEmpty());
+                        });
+
+                verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+                verify(reviewRepository).findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
+            }
+
+            @Test
+            @DisplayName("조건에 맞는 회원의 리뷰가 존재하지 않는 경우 빈 리스트 반환")
+            void getMemberReviews_Success3() {
+                // given
+                Long memberId = 1L;
+                long lastReviewId = 5L;
+                int size = 5;
+                CursorRequest cursorRequest = CursorRequest.of(lastReviewId, size);
+
+                given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
+                given(reviewRepository.findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size))).willReturn(Collections.emptyList());
+
+                // when
+                CursorResponse<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, cursorRequest);
+
+                // then
+                assertEquals(CursorRequest.NONE_KEY, result.getNextCursorRequest().getKey());
+                assertEquals(size, result.getNextCursorRequest().getSize());
+                assertTrue(result.getBody().isEmpty());
+                verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+                verify(reviewRepository).findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
+            }
+
+            @Test
+            @DisplayName("CursorRequest 정보가 null 일 때 기본 값을 이용한 회원 리뷰 응답 리스트 반환")
+            void getMemberReviews_Success5() {
+                // given
+                Long memberId = 1L;
+                CursorRequest cursorRequest = CursorRequest.of(null, null);
+
+                Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                Review review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop2).starRating(2).content("리뷰 내용2").purity(PurityScore.GOOD).status(ReviewStatus.REGISTERED).build();
+                List<Review> memberReviews = List.of(review2, review1);
+
+                given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
+                given(reviewRepository.findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(eq(member), eq(ReviewStatus.REGISTERED), anyLong(), any(PageRequest.class))).willReturn(memberReviews);
+
+                // when
+                CursorResponse<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, cursorRequest);
+
+                // then
+                ArgumentCaptor<Long> keyCaptor = ArgumentCaptor.forClass(Long.class);
+                ArgumentCaptor<PageRequest> pageRequestCaptor = ArgumentCaptor.forClass(PageRequest.class);
+                verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
+                verify(reviewRepository).findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(eq(member), eq(ReviewStatus.REGISTERED), keyCaptor.capture(), pageRequestCaptor.capture());
+
+                assertEquals(review1.getId(), result.getNextCursorRequest().getKey());
+                assertEquals(10, result.getNextCursorRequest().getSize());
+                assertEquals(Long.MAX_VALUE, keyCaptor.getValue());
+                assertEquals(0, pageRequestCaptor.getValue().getPageNumber());
+                assertEquals(10, pageRequestCaptor.getValue().getPageSize());
+
+                assertTrue(10 >= result.getBody().size());
+                assertEquals(memberReviews.size(), result.getBody().size());
+                IntStream.range(0, result.getBody().size())
+                        .forEach(i -> {
+                            MemberReviewResponse response = result.getBody().get(i);
+                            Review review = memberReviews.get(i);
+
+                            assertTrue(Long.MAX_VALUE > response.getReview().getId());
+                            assertEquals(review.getId(), response.getReview().getId());
+                            assertEquals(review.getShop().getId(), response.getShop().getId());
+                            assertTrue(response.getPhotos().isEmpty());
+                        });
             }
         }
-
-        @Test
-        @DisplayName("조건에 맞는 회원의 리뷰가 있고 리뷰 사진이 없을 때 MemberReviewResponse 반환")
-        void getMemberReviews_Success2() {
-            // given
-            Long memberId = 1L;
-            Long lastReviewId = 5L;
-            int size = 10;
-
-            Review review1 = Review.builder().id(1L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop1).starRating(1).content("리뷰 내용1").purity(PurityScore.GOOD).retouch(RetouchScore.GOOD).item(ItemScore.GOOD).status(ReviewStatus.REGISTERED).build();
-            Review review2 = Review.builder().id(2L).createDate(LocalDateTime.now()).modifyDate(LocalDateTime.now()).member(member).shop(shop2).starRating(2).content("리뷰 내용2").purity(PurityScore.GOOD).status(ReviewStatus.REGISTERED).build();
-            List<Review> memberReviews = List.of(review2, review1);
-
-            given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
-            given(reviewRepository.findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size))).willReturn(memberReviews);
-
-            // when
-            List<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, lastReviewId, size);
-
-            // then
-            assertTrue(result.size() <= size);
-            assertEquals(memberReviews.size(), result.size());
-
-            assertTrue(result.get(0).getReview().getId() < lastReviewId);
-            assertEquals(review2.getId(), result.get(0).getReview().getId());
-            assertEquals(shop2.getId(), result.get(0).getShop().getId());
-
-            assertTrue(result.get(1).getReview().getId() < lastReviewId);
-            assertEquals(review1.getId(), result.get(1).getReview().getId());
-            assertEquals(shop1.getId(), result.get(1).getShop().getId());
-
-            verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
-            verify(reviewRepository).findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
-        }
-
-        @Test
-        @DisplayName("조건에 맞는 회원의 리뷰가 존재하지 않는 경우 빈 리스트 반환")
-        void getMemberReviews_Success3() {
-            // given
-            Long memberId = 1L;
-            Long lastReviewId = 5L;
-            int size = 10;
-
-            given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.of(member));
-            given(reviewRepository.findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size))).willReturn(Collections.emptyList());
-
-            // when
-            List<MemberReviewResponse> result = reviewReadServiceImpl.getMemberReviews(memberId, lastReviewId, size);
-
-            // then
-            assertTrue(result.isEmpty());
-            verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
-            verify(reviewRepository).findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
-        }
-
 
         @Nested
         @DisplayName("실패 테스트")
@@ -278,18 +341,17 @@ public class ReviewReadServiceImplTest {
             void getMemberReviews_Fail1() {
                 // given
                 Long memberId = 99L;
-                Long lastReviewId = 5L;
-                int size = 10;
+                CursorRequest cursorRequest = CursorRequest.of(5L, 5);
 
                 given(memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)).willReturn(Optional.empty());
 
                 // when & then
                 BusinessException result = assertThrows(BusinessException.class,
-                        () -> reviewReadServiceImpl.getMemberReviews(memberId, lastReviewId, size));
+                        () -> reviewReadServiceImpl.getMemberReviews(memberId, cursorRequest));
 
                 assertEquals(ErrorCode.MEMBER_NOT_FOUND, result.getErrorCode());
                 verify(memberRepository).findByIdAndStatus(memberId, MemberStatus.REGISTERED);
-                verify(reviewRepository, never()).findAllByMemberIdAndStatusAndIdLessThan(anyLong(), any(), anyLong(), any());
+                verify(reviewRepository, never()).findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(any(), any(), anyLong(), any());
             }
         }
 
@@ -400,15 +462,15 @@ public class ReviewReadServiceImplTest {
                 assertTrue(result.getBody().size() <= size);
                 assertEquals(shopReviews.size(), result.getBody().size());
                 IntStream.range(0, result.getBody().size())
-                                .forEach(i -> {
-                                    ShopReviewResponse response = result.getBody().get(i);
-                                    Review review = shopReviews.get(i);
+                        .forEach(i -> {
+                            ShopReviewResponse response = result.getBody().get(i);
+                            Review review = shopReviews.get(i);
 
-                                    assertTrue(response.getReview().getId() < lastReviewId);
-                                    assertEquals(review.getId(), response.getReview().getId());
-                                    assertEquals(review.getMember().getId(), response.getMember().getId());
-                                    assertTrue(response.getPhotos().isEmpty());
-                                });
+                            assertTrue(response.getReview().getId() < lastReviewId);
+                            assertEquals(review.getId(), response.getReview().getId());
+                            assertEquals(review.getMember().getId(), response.getMember().getId());
+                            assertTrue(response.getPhotos().isEmpty());
+                        });
 
                 verify(shopRepository).findById(shopId);
                 verify(reviewRepository).findAllByShopAndStatusAndIdLessThanOrderByIdDesc(shop, ReviewStatus.REGISTERED, lastReviewId, pageRequest);

@@ -1,6 +1,7 @@
 package com.idea5.four_cut_photos_map.domain.review.service;
 
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
+import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.member.entity.MemberStatus;
 import com.idea5.four_cut_photos_map.domain.member.repository.MemberRepository;
 import com.idea5.four_cut_photos_map.domain.shop.entity.Shop;
@@ -44,13 +45,20 @@ public class ReviewReadServiceImpl implements ReviewReadService {
     }
 
     @Override
-    public List<MemberReviewResponse> getMemberReviews(Long memberId, Long lastReviewId, int size) {
-        memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)
+    public CursorResponse<MemberReviewResponse> getMemberReviews(Long memberId, CursorRequest request) {
+        Member member = memberRepository.findByIdAndStatus(memberId, MemberStatus.REGISTERED)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return reviewRepository.findAllByMemberIdAndStatusAndIdLessThan(memberId, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size)).stream()
+        long lastReviewId = request.getKeyOrDefault(Long.MAX_VALUE);
+        int size = request.getSizeOrDefault(10);
+        List<Review> reviews = reviewRepository.findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(member, ReviewStatus.REGISTERED, lastReviewId, PageRequest.of(0, size));
+
+        long nextKey = getNextKey(reviews);
+        List<MemberReviewResponse> responses = reviews.stream()
                 .map(this::toMemberReviewResponse)
                 .collect(Collectors.toList());
+
+        return new CursorResponse<>(CursorRequest.of(nextKey, size), responses);
     }
 
     @Override

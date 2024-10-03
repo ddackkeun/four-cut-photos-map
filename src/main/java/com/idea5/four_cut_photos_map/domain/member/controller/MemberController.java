@@ -12,6 +12,8 @@ import com.idea5.four_cut_photos_map.domain.memberTitle.dto.response.MemberTitle
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.MemberReviewResponse;
 import com.idea5.four_cut_photos_map.domain.review.service.ReviewReadService;
+import com.idea5.four_cut_photos_map.global.util.CursorRequest;
+import com.idea5.four_cut_photos_map.global.util.CursorResponse;
 import com.idea5.four_cut_photos_map.security.jwt.dto.MemberContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -102,12 +104,11 @@ public class MemberController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{member-id}/reviews")
-    public ResponseEntity<List<MemberReviewResponse>> getMemberReviews(
+    public ResponseEntity<CursorResponse<MemberReviewResponse>> getMemberReviews(
             @PathVariable("member-id") Long memberId,
-            @RequestParam(required = false, defaultValue = "9223372036854775807") Long lastId,
-            @RequestParam(required = false, defaultValue = "10") int size
+            @Valid CursorRequest cursorRequest
     ) {
-        List<MemberReviewResponse> response = reviewReadService.getMemberReviews(memberId, lastId, size);
+        CursorResponse<MemberReviewResponse> response = reviewReadService.getMemberReviews(memberId, cursorRequest);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,5 +1,6 @@
 package com.idea5.four_cut_photos_map.domain.review.repository;
 
+import com.idea5.four_cut_photos_map.domain.member.entity.Member;
 import com.idea5.four_cut_photos_map.domain.review.dto.response.ShopReviewSummary;
 import com.idea5.four_cut_photos_map.domain.review.entity.Review;
 import com.idea5.four_cut_photos_map.domain.review.entity.enums.ReviewStatus;
@@ -34,4 +35,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT r From Review r WHERE r.member.id = :memberId AND r.status = :status AND r.id < :lastReviewId ORDER BY r.id DESC")
     List<Review> findAllByMemberIdAndStatusAndIdLessThan(@Param("memberId") Long memberId, @Param("status") ReviewStatus status, @Param("lastReviewId") Long lastReviewId, Pageable pageable);
+
+    List<Review> findAllByMemberAndStatusAndIdLessThanOrderByIdDesc(Member member, ReviewStatus status, long lastReviewId, Pageable pageable);
 }

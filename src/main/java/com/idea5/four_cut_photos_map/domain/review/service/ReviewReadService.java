@@ -10,6 +10,6 @@ import java.util.List;
 
 public interface ReviewReadService {
     ReviewDetailResponse getReview(Long reviewId);
-    List<MemberReviewResponse> getMemberReviews(Long memberId, Long lastReviewId, int size);
+    CursorResponse<MemberReviewResponse> getMemberReviews(Long memberId, CursorRequest request);
     CursorResponse<ShopReviewResponse> getShopReviews(Long shopId, CursorRequest request);
 }
