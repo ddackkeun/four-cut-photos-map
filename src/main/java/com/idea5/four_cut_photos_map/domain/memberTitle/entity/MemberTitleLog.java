@@ -27,6 +27,10 @@ public class MemberTitleLog extends BaseEntity {
     @Column(name = "is_main", nullable = false)
     private Boolean isMain; // 대표 칭호 여부
 
+    public static MemberTitleLog create(Long memberId, MemberTitle memberTitle) {
+        return new MemberTitleLog(memberId, memberTitle, false);
+    }
+
     public String getMemberTitleName() {
         return getMemberTitle().getName();
     }

@@ -6,6 +6,7 @@ import com.idea5.four_cut_photos_map.domain.auth.dto.response.KakaoTokenResp;
 import com.idea5.four_cut_photos_map.domain.auth.service.KakaoService;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.LoginResponse;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberRequestService;
+import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleType;
 import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
 import com.idea5.four_cut_photos_map.security.jwt.JwtService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.response.TokenResponse;
@@ -31,7 +32,7 @@ public class KakaoLoginUseCase {
 
         // TODO 비동기처리
         if(loginResponse.getIsNewMember()) {
-            memberTitleService.issueNewbieTitle(loginResponse.getMemberResponse().getId());
+            memberTitleService.issueMemberTitleLog(loginResponse.getMemberResponse().getId(), MemberTitleType.NEWBIE.getCode());
         }
 
         return jwtService.generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities());

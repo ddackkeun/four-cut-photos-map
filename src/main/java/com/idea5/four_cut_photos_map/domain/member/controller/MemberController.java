@@ -57,9 +57,9 @@ public class MemberController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/titles")
-    public ResponseEntity<List<MemberTitleResponse>> getMemberTitle(@AuthenticationPrincipal MemberContext memberContext) {
-        List<MemberTitleResponse> response = memberTitleService.getMemberTitles(memberContext.getId());
+    @GetMapping("/{member-id}/titles")
+    public ResponseEntity<List<MemberTitleResponse>> getMemberTitle(@PathVariable(value = "member-id") Long memberId) {
+        List<MemberTitleResponse> response = memberTitleService.getMemberTitles(memberId);
         return ResponseEntity.ok(response);
     }
 

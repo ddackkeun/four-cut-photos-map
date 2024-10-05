@@ -32,9 +32,7 @@ public class CollectJob {
         // 인증된 API 요청 -> 로그 남기자
         // TODO: 전체 회원 말고 오늘 요청보낸 회원만
         // 회원, 회원칭호 전체조회
-        log.info("---Before memberTitleService.findAllMemberTitle()---");
-        List<MemberTitle> memberTitles = memberTitleService.findAllMemberTitle();
-        log.info("---Before memberService.findAll()---");
+        List<MemberTitle> memberTitles = memberTitleService.getAllMemberTitles();
         List<Member> members = memberService.findAll();
 
 //        StopWatch stopWatch = new StopWatch();

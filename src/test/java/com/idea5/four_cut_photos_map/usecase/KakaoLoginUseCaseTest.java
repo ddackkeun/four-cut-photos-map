@@ -7,16 +7,17 @@ import com.idea5.four_cut_photos_map.domain.auth.service.KakaoService;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.LoginResponse;
 import com.idea5.four_cut_photos_map.domain.member.dto.response.MemberResponse;
 import com.idea5.four_cut_photos_map.domain.member.service.MemberRequestServiceImpl;
-import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleService;
+import com.idea5.four_cut_photos_map.domain.memberTitle.entity.MemberTitleType;
+import com.idea5.four_cut_photos_map.domain.memberTitle.service.MemberTitleServiceImpl;
 import com.idea5.four_cut_photos_map.security.jwt.JwtService;
 import com.idea5.four_cut_photos_map.security.jwt.dto.response.TokenResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -26,6 +27,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +39,7 @@ public class KakaoLoginUseCaseTest {
     private MemberRequestServiceImpl memberRequestService;
 
     @Mock
-    private MemberTitleService memberTitleService;
+    private MemberTitleServiceImpl memberTitleService;
 
     @Mock
     private JwtService jwtService;
@@ -62,12 +64,12 @@ public class KakaoLoginUseCaseTest {
         LoginResponse loginResponse = new LoginResponse(memberResponse, false);
         TokenResponse tokenResponse = new TokenResponse("accessToken", "refreshToken");
 
-        when(request.getHeader("Origin")).thenReturn(originHeader);
-        when(kakaoService.getRedirectURI(originHeader)).thenReturn(redirectURI);
-        when(kakaoService.getKakaoTokens(code, redirectURI)).thenReturn(kakaoToken);
-        when(kakaoService.getKakaoUserInfo(kakaoToken)).thenReturn(kakaoUserInfo);
-        when(memberRequestService.login(kakaoUserInfo, kakaoToken)).thenReturn(loginResponse);
-        when(jwtService.generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities())).thenReturn(tokenResponse);
+        given(request.getHeader("Origin")).willReturn(originHeader);
+        given(kakaoService.getRedirectURI(originHeader)).willReturn(redirectURI);
+        given(kakaoService.getKakaoTokens(code, redirectURI)).willReturn(kakaoToken);
+        given(kakaoService.getKakaoUserInfo(kakaoToken)).willReturn(kakaoUserInfo);
+        given(memberRequestService.login(kakaoUserInfo, kakaoToken)).willReturn(loginResponse);
+        given(jwtService.generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities())).willReturn(tokenResponse);
 
         // when
         TokenResponse response = kakaoLoginUseCase.execute(code, request);
@@ -78,7 +80,7 @@ public class KakaoLoginUseCaseTest {
         verify(kakaoService, times(1)).getKakaoTokens(code, redirectURI);
         verify(kakaoService, times(1)).getKakaoUserInfo(kakaoToken);
         verify(memberRequestService, times(1)).login(kakaoUserInfo, kakaoToken);
-        verify(memberTitleService, never()).issueNewbieTitle(anyLong());
+        verify(memberTitleService, never()).issueMemberTitleLog(anyLong(), anyLong());
         verify(jwtService, times(1)).generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities());
     }
 
@@ -95,12 +97,12 @@ public class KakaoLoginUseCaseTest {
         LoginResponse loginResponse = new LoginResponse(memberResponse, true);
         TokenResponse tokenResponse = new TokenResponse("accessToken", "refreshToken");
 
-        when(request.getHeader("Origin")).thenReturn(originHeader);
-        when(kakaoService.getRedirectURI(originHeader)).thenReturn(redirectURI);
-        when(kakaoService.getKakaoTokens(code, redirectURI)).thenReturn(kakaoToken);
-        when(kakaoService.getKakaoUserInfo(kakaoToken)).thenReturn(kakaoUserInfo);
-        when(memberRequestService.login(kakaoUserInfo, kakaoToken)).thenReturn(loginResponse);
-        when(jwtService.generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities())).thenReturn(tokenResponse);
+        given(request.getHeader("Origin")).willReturn(originHeader);
+        given(kakaoService.getRedirectURI(originHeader)).willReturn(redirectURI);
+        given(kakaoService.getKakaoTokens(code, redirectURI)).willReturn(kakaoToken);
+        given(kakaoService.getKakaoUserInfo(kakaoToken)).willReturn(kakaoUserInfo);
+        given(memberRequestService.login(kakaoUserInfo, kakaoToken)).willReturn(loginResponse);
+        given(jwtService.generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities())).willReturn(tokenResponse);
 
         // when
         TokenResponse response = kakaoLoginUseCase.execute(code, request);
@@ -111,7 +113,7 @@ public class KakaoLoginUseCaseTest {
         verify(kakaoService, times(1)).getKakaoTokens(code, redirectURI);
         verify(kakaoService, times(1)).getKakaoUserInfo(kakaoToken);
         verify(memberRequestService, times(1)).login(kakaoUserInfo, kakaoToken);
-        verify(memberTitleService, times(1)).issueNewbieTitle(anyLong());
+        verify(memberTitleService, times(1)).issueMemberTitleLog(loginResponse.getMemberResponse().getId(), MemberTitleType.NEWBIE.getCode());
         verify(jwtService, times(1)).generateTokens(loginResponse.getMemberResponse().getId(), loginResponse.getMemberResponse().getAuthorities());
     }
 
@@ -123,14 +125,15 @@ public class KakaoLoginUseCaseTest {
         String originHeader = "http://localhost";
         JsonProcessingException exception = new JsonProcessingException("Kakao service exception") {};
 
-        when(request.getHeader("Origin")).thenReturn(originHeader);
-        when(kakaoService.getKakaoTokens(any(), any())).thenThrow(exception);
+        given(request.getHeader("Origin")).willReturn(originHeader);
+        given(kakaoService.getKakaoTokens(any(), any())).willThrow(exception);
 
         // when & then
-        JsonProcessingException response = assertThrows(JsonProcessingException.class, () -> kakaoLoginUseCase.execute(code, request));
+        JsonProcessingException response = assertThrows(JsonProcessingException.class,
+                () -> kakaoLoginUseCase.execute(code, request));
         verify(kakaoService, never()).getKakaoUserInfo(any());
         verify(memberRequestService, never()).login(any(), any());
-        verify(memberTitleService, never()).issueNewbieTitle(anyLong());
+        verify(memberTitleService, never()).issueMemberTitleLog(anyLong(), anyLong());
         verify(jwtService, never()).generateTokens(anyLong(), anyCollection());
     }
 }
